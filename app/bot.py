@@ -23,10 +23,12 @@ Add any description after the command to provide context\.
 https://issue\.tracker/TASK-123
 ```
 
-Currently, there is only one scale of numbers with additional votes:
-\* ❓— Still unsure how to estimate
-\* ∞ — Task is too large, impossible to estimate
-\* ☕ — Let's take a break
+Currently, there is only one scale of numbers from 0 to 30.
+
+Special cases:
+\* ∞ — Impossible to estimate or task cannot be completed
+\* ❓— Unsure how to estimate
+\* ☕ — I need a break
 """
 
 bot = Bot(BOT_API_TOKEN)

@@ -1,4 +1,4 @@
-# DevPoker: Developers Planning Poker Bot for Telegram
+# Telegram DevPoker Bot: planning poker for agile software development teams
 
 This bot allows software development teams to play Planning Poker game in Telegram group chats.
 
@@ -31,10 +31,10 @@ Currently, there is only one scale of numbers:
 12, 18, 24, 30
 ```
 
-Additional votes:
-* ❓— Still unsure how to estimate
-* ∞ — Task is too large, impossible to estimate
-* ☕ — Let's take a break
+Special cases:
+* ∞ — Impossible to estimate or task cannot be completed
+* ❓— Unsure how to estimate
+* ☕ — I need a break
 
 ## Self-hosted usage
 
@@ -58,7 +58,7 @@ This project is highly inspired by the [tg-planning-poker](https://github.com/re
 
 ## License
 
-- `Telegram Dev Planning Poker Bot` is open-sourced software licensed under the [MIT license](LICENSE) by [Anton Komarev].
+- `Telegram DevPoker Bot` is open-sourced software licensed under the [MIT license](LICENSE) by [Anton Komarev].
 
 ## About CyberCog
 
