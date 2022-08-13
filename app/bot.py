@@ -15,11 +15,11 @@ To start *Planning Poker* use /poker command\.
 Add any description after the command to provide context\. 
   
 *Example:*
-`/poker Redesign Planning Poker Bot keyboard layout`
+`/poker Design DevPoker bot keyboard layout`
 
 *Example with multiline description:*
 ```
-/poker Redesign planning poker bot keyboard layout
+/poker Design DevPoker bot keyboard layout
 https://issue\.tracker/TASK-123
 ```
 

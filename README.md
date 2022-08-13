@@ -1,24 +1,24 @@
-# Developers Planning Poker Bot for Telegram
+# DevPoker: Developers Planning Poker Bot for Telegram
 
-This bot allows software development teams to play Planning Poker game in the Telegram group chats.
+This bot allows software development teams to play Planning Poker game in Telegram group chats.
 
 ![](https://user-images.githubusercontent.com/1849174/184502550-3469c04d-e99b-4709-9159-081f3c9aaa3d.png)
 
 ## Usage
 
-Add https://t.me/devpoker_bot to group chat.
+Add [@devpoker_bot](https://t.me/devpoker_bot?startgroup=true) to the group chat.
 
 To start **Planning Poker** use `/poker` command.
 Add any description after the command to provide context. 
 
 Example:
 ```
-/poker Redesign Planning Poker Bot keyboard layout
+/poker Design DevPoker Bot keyboard layout
 ``` 
 
 Example with multiline description:
 ```
-/poker Redesign planning poker bot keyboard layout
+/poker Design DevPoker bot keyboard layout
 https://issue\.tracker/TASK-123
 ```
 
