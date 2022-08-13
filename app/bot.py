@@ -34,7 +34,12 @@ Special cases:
 bot = Bot(BOT_API_TOKEN)
 storage = GameRegistry()
 init_logging()
-REVEAL_RESTART_COMMANDS = [Game.OP_REVEAL, Game.OP_RESTART, Game.OP_RESTART_NEW, Game.OP_REVEAL_NEW]
+REVEAL_RESTART_COMMANDS = [
+    Game.OP_REVEAL,
+    Game.OP_RESTART,
+    Game.OP_RESTART_NEW,
+    Game.OP_REVEAL_NEW,
+]
 
 
 @bot.command("/start")
