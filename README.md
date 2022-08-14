@@ -7,6 +7,8 @@ The bot allows you to introduce a consensus-based, gamified technique of task es
 
 ## Usage
 
+> ⚠️ Work in progress. Public bot may be offline until the first stable release.
+
 Add [@devpoker_bot](https://t.me/devpoker_bot?startgroup=true) to the group chat.
 
 To start **Planning Poker** use `/poker` command.
