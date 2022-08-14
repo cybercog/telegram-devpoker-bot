@@ -26,7 +26,8 @@ https://issue\.tracker/TASK-123
 Currently, there is only one sequence of numbers from 0 to 30\.
 
 Special cases:
-\* ∞ — Impossible to estimate or task cannot be completed
+\* ✂️ — Task must be broken down
+\* ♾️ — Impossible to estimate or task cannot be completed
 \* ❓— Unsure how to estimate
 \* ☕ — I need a break
 """
