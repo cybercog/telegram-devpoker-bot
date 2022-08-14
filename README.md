@@ -27,7 +27,7 @@ https://issue\.tracker/TASK-123
 
 Only initiator can open cards or restart game at any moment. 
 
-Currently, there is only one scale of numbers:
+Currently, there is only one sequence of numbers:
 ```
 0, 0.5, 1, 2, 3, 4
 5, 6, 7, 8, 9, 10
@@ -35,7 +35,8 @@ Currently, there is only one scale of numbers:
 ```
 
 Special cases:
-* ∞ — Impossible to estimate or task cannot be completed
+* ✂️ — Task must be broken down
+* ♾️ — Impossible to estimate or task cannot be completed
 * ❓— Unsure how to estimate
 * ☕ — I need a break
 

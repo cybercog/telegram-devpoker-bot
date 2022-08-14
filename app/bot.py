@@ -23,10 +23,11 @@ Add any description after the command to provide context\.
 https://issue\.tracker/TASK-123
 ```
 
-Currently, there is only one scale of numbers from 0 to 30\.
+Currently, there is only one sequence of numbers from 0 to 30\.
 
 Special cases:
-\* ∞ — Impossible to estimate or task cannot be completed
+\* ✂️ — Task must be broken down
+\* ♾️ — Impossible to estimate or task cannot be completed
 \* ❓— Unsure how to estimate
 \* ☕ — I need a break
 """
@@ -35,10 +36,9 @@ bot = Bot(BOT_API_TOKEN)
 storage = GameRegistry()
 init_logging()
 REVEAL_RESTART_COMMANDS = [
-    Game.OP_REVEAL,
+    Game.OP_END_GAME,
     Game.OP_RESTART,
     Game.OP_RESTART_NEW,
-    Game.OP_REVEAL_NEW,
 ]
 
 
@@ -85,7 +85,7 @@ async def vote_click(chat: Chat, cq: CallbackQuery, match):
 
 
 @bot.callback(r"({})-click-(.*?)$".format("|".join(REVEAL_RESTART_COMMANDS)))
-async def reveal_click(chat: Chat, cq: CallbackQuery, match):
+async def operations_click(chat: Chat, cq: CallbackQuery, match):
     operation = match.group(1)
     vote_id = match.group(2)
     game = await storage.get_game(chat.id, vote_id)
@@ -104,7 +104,7 @@ async def reveal_click(chat: Chat, cq: CallbackQuery, match):
         game.revealed = True
         current_text = game.get_text()
 
-    if operation in (Game.OP_RESTART, Game.OP_REVEAL):
+    if operation in (Game.OP_RESTART, Game.OP_END_GAME):
         try:
             await bot.edit_message_text(chat.id, game.reply_message_id, **game.get_send_kwargs())
         except BotApiError:

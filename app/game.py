@@ -9,7 +9,7 @@ POINTS_LAYOUT = [
     ["0", "0.5", "1", "2", "3", "4"],
     ["5", "6", "7", "8", "9", "10"],
     ["12", "18", "24", "30"],
-    ["∞", "❓", "☕"],
+    ["✂️", "♾️", "❓", "☕"],
 ]
 
 
@@ -43,8 +43,7 @@ class Vote:
 class Game:
     OP_RESTART = "restart"
     OP_RESTART_NEW = "restart-new"
-    OP_REVEAL = "reveal"
-    OP_REVEAL_NEW = "reveal-new"
+    OP_END_GAME = "end-game"
 
     def __init__(self, chat_id, vote_id, initiator, text):
         self.chat_id = chat_id
@@ -63,6 +62,7 @@ class Game:
             "Vote" if not self.revealed else "Results",
             self.text, self._initiator_str(self.initiator)
         )
+
         if self.votes:
             votes_str = "\n".join(
                 "{:3s} {}".format(
@@ -71,10 +71,14 @@ class Game:
                 for user_id, vote in sorted(self.votes.items())
             )
             result += "\n\nCurrent votes:\n{}".format(votes_str)
+
         return result
 
     def get_send_kwargs(self):
-        return {"text": self.get_text(), "reply_markup": json.dumps(self.get_markup())}
+        return {
+            "text": self.get_text(),
+            "reply_markup": json.dumps(self.get_markup()),
+        }
 
     def get_point_button(self, point):
         return {
@@ -83,45 +87,49 @@ class Game:
             "callback_data": "vote-click-{}-{}".format(self.vote_id, point),
         }
 
-    def get_reset_buttons(self):
-        return [
-            {
-                "type": "InlineKeyboardButton",
-                "text": "Restart",
-                "callback_data": "{}-click-{}".format(self.OP_RESTART, self.vote_id),
-            },
-            {
-                "type": "InlineKeyboardButton",
-                "text": "Restart 🆕",
-                "callback_data": "{}-click-{}".format(self.OP_RESTART_NEW, self.vote_id),
-            },
-        ]
+    def get_restart_button(self):
+        return {
+            "type": "InlineKeyboardButton",
+            "text": "Restart",
+            "callback_data": "{}-click-{}".format(self.OP_RESTART, self.vote_id),
+        }
 
-    def get_open_cards_buttons(self):
-        return [
-            {
-                "type": "InlineKeyboardButton",
-                "text": "Open Cards",
-                "callback_data": "{}-click-{}".format(self.OP_REVEAL, self.vote_id),
-            },
-            {
-                "type": "InlineKeyboardButton",
-                "text": "Open Cards 🆕",
-                "callback_data": "{}-click-{}".format(self.OP_REVEAL_NEW, self.vote_id),
-            },
-        ]
+    def get_re_vote_button(self):
+        return {
+            "type": "InlineKeyboardButton",
+            "text": "Re-vote",
+            "callback_data": "{}-click-{}".format(self.OP_RESTART_NEW, self.vote_id),
+        }
+
+    def get_open_cards_button(self):
+        return {
+            "type": "InlineKeyboardButton",
+            "text": "End game",
+            "callback_data": "{}-click-{}".format(self.OP_END_GAME, self.vote_id),
+        }
 
     def get_markup(self):
         layout_rows = []
 
-        for points_layout_row in POINTS_LAYOUT:
-            points_buttons_row = []
-            for point in points_layout_row:
-                points_buttons_row.append(self.get_point_button(point))
-            layout_rows.append(points_buttons_row)
+        if not self.revealed:
+            for points_layout_row in POINTS_LAYOUT:
+                points_buttons_row = []
+                for point in points_layout_row:
+                    points_buttons_row.append(self.get_point_button(point))
+                layout_rows.append(points_buttons_row)
 
-        layout_rows.append(self.get_reset_buttons())
-        layout_rows.append(self.get_open_cards_buttons())
+            layout_rows.append(
+                [
+                    self.get_restart_button(),
+                    self.get_open_cards_button(),
+                ]
+            )
+        else:
+            layout_rows.append(
+                [
+                    self.get_re_vote_button(),
+                ]
+            )
 
         return {
             "type": "InlineKeyboardMarkup",
