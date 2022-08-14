@@ -3,7 +3,7 @@
 Planning Poker (Scrum Poker) for Agile software development teams.
 The bot allows you to introduce a consensus-based, gamified technique of task estimating into Telegram group chats.
 
-![](https://user-images.githubusercontent.com/1849174/184502550-3469c04d-e99b-4709-9159-081f3c9aaa3d.png)
+![devpoker-hero-image](https://user-images.githubusercontent.com/1849174/184529872-aa0f8235-90d5-4a75-85df-5a63b73dbe02.gif)
 
 ## Usage
 
