@@ -23,7 +23,7 @@ Add any description after the command to provide context\.
 https://issue\.tracker/TASK-123
 ```
 
-Currently, there is only one scale of numbers from 0 to 30.
+Currently, there is only one scale of numbers from 0 to 30\.
 
 Special cases:
 \* ∞ — Impossible to estimate or task cannot be completed
