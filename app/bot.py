@@ -101,7 +101,7 @@ async def operations_click(chat: Chat, cq: CallbackQuery, match):
     if operation in (Game.OP_RESTART, Game.OP_RE_VOTE):
         game.restart()
     else:
-        game.revealed = True
+        game.end()
         current_text = game.get_text()
 
     if operation in (Game.OP_RESTART, Game.OP_END_GAME):

@@ -140,6 +140,9 @@ class Game:
         self.votes.clear()
         self.revealed = False
 
+    def end(self):
+        self.revealed = True
+
     @staticmethod
     def _initiator_str(initiator: dict) -> str:
         return "@{} ({})".format(
