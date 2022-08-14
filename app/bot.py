@@ -96,13 +96,12 @@ async def operations_click(chat: Chat, cq: CallbackQuery, match):
     if cq.src["from"]["id"] != game.initiator["id"]:
         return await cq.answer(text="Operation '{}' is available only for initiator".format(operation))
 
-    current_text = game.get_text()
+    current_text = game.render()
 
     if operation in (Game.OP_RESTART, Game.OP_RE_VOTE):
         game.restart()
     else:
         game.end()
-        current_text = game.get_text()
 
     if operation in (Game.OP_RESTART, Game.OP_END_GAME):
         try:
