@@ -38,7 +38,7 @@ init_logging()
 REVEAL_RESTART_COMMANDS = [
     Game.OP_END_GAME,
     Game.OP_RESTART,
-    Game.OP_RESTART_NEW,
+    Game.OP_RE_VOTE,
 ]
 
 
@@ -98,7 +98,7 @@ async def operations_click(chat: Chat, cq: CallbackQuery, match):
 
     current_text = game.get_text()
 
-    if operation in (Game.OP_RESTART, Game.OP_RESTART_NEW):
+    if operation in (Game.OP_RESTART, Game.OP_RE_VOTE):
         game.restart()
     else:
         game.revealed = True

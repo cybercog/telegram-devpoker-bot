@@ -42,7 +42,7 @@ class Vote:
 
 class Game:
     OP_RESTART = "restart"
-    OP_RESTART_NEW = "restart-new"
+    OP_RE_VOTE = "re-vote"
     OP_END_GAME = "end-game"
 
     def __init__(self, chat_id, vote_id, initiator, text):
@@ -98,7 +98,7 @@ class Game:
         return {
             "type": "InlineKeyboardButton",
             "text": "Re-vote",
-            "callback_data": "{}-click-{}".format(self.OP_RESTART_NEW, self.vote_id),
+            "callback_data": "{}-click-{}".format(self.OP_RE_VOTE, self.vote_id),
         }
 
     def get_open_cards_button(self):
