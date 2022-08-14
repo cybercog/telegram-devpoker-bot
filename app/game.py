@@ -57,11 +57,38 @@ class Game:
     def add_vote(self, initiator, point):
         self.votes[self._initiator_str(initiator)].set(point)
 
-    def get_text(self):
-        result = "{} for:\n{}\nInitiator: {}".format(
-            "Vote" if not self.revealed else "Results",
-            self.text, self._initiator_str(self.initiator)
-        )
+    def render(self):
+        result = ""
+
+        result += self.render_summary()
+        result += "\n"
+        result += self.render_initiator()
+        result += "\n"
+        result += "\n"
+        result += self.render_votes()
+
+        return result
+
+    def render_summary(self):
+        result = ""
+
+        if not self.revealed:
+            result += "Vote for:"
+        else:
+            result += "Results for:"
+
+        result += "\n"
+        result += self.text
+
+        return result
+
+    def render_initiator(self):
+        return "Initiator: {}".format(self._initiator_str(self.initiator))
+
+    def render_votes(self):
+        votes_count = len(self.votes)
+
+        result = ""
 
         if self.votes:
             votes_str = "\n".join(
@@ -70,13 +97,13 @@ class Game:
                 )
                 for user_id, vote in sorted(self.votes.items())
             )
-            result += "\n\nCurrent votes:\n{}".format(votes_str)
+            result += "Votes ({}):\n{}".format(votes_count, votes_str)
 
         return result
 
     def get_send_kwargs(self):
         return {
-            "text": self.get_text(),
+            "text": self.render(),
             "reply_markup": json.dumps(self.get_markup()),
         }
 
