@@ -1,5 +1,11 @@
 # Telegram DevPoker Bot
 
+<p align="center">
+<a href="https://discord.gg/KcTUWYHMFv"><img src="https://img.shields.io/static/v1?logo=discord&label=&message=Discord&color=36393f&style=flat-square" alt="Discord"></a>
+<a href="https://github.com/cybercog/telegram-devpoker-bot/releases"><img src="https://img.shields.io/github/release/cybercog/telegram-devpoker-bot.svg?style=flat-square" alt="Releases"></a>
+<a href="https://github.com/cybercog/telegram-devpoker-bot/blob/master/LICENSE"><img src="https://img.shields.io/github/license/cybercog/telegram-devpoker-bot.svg?style=flat-square" alt="License"></a>
+</p>
+
 Planning Poker (Scrum Poker) for Agile software development teams.
 The bot allows you to introduce a consensus-based, gamified technique of task estimating into Telegram group chats.
 
