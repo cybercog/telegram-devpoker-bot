@@ -58,7 +58,7 @@ Bot uses SQLite database at host in `~/.devpoker_bot/devpoker_bot.db`.
 
 ## Credits
 
-This project is highly inspired by the [tg-planning-poker](https://github.com/reclosedev/tg-planning-poker).
+This project is inspired by the [tg-planning-poker](https://github.com/reclosedev/tg-planning-poker).
 
 ## License
 
