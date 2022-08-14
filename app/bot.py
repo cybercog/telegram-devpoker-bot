@@ -38,7 +38,6 @@ REVEAL_RESTART_COMMANDS = [
     Game.OP_REVEAL,
     Game.OP_RESTART,
     Game.OP_RESTART_NEW,
-    Game.OP_REVEAL_NEW,
 ]
 
 

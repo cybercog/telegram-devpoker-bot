@@ -44,7 +44,6 @@ class Game:
     OP_RESTART = "restart"
     OP_RESTART_NEW = "restart-new"
     OP_REVEAL = "reveal"
-    OP_REVEAL_NEW = "reveal-new"
 
     def __init__(self, chat_id, vote_id, initiator, text):
         self.chat_id = chat_id
@@ -97,19 +96,12 @@ class Game:
             },
         ]
 
-    def get_open_cards_buttons(self):
-        return [
-            {
-                "type": "InlineKeyboardButton",
-                "text": "Open Cards",
-                "callback_data": "{}-click-{}".format(self.OP_REVEAL, self.vote_id),
-            },
-            {
-                "type": "InlineKeyboardButton",
-                "text": "Open Cards 🆕",
-                "callback_data": "{}-click-{}".format(self.OP_REVEAL_NEW, self.vote_id),
-            },
-        ]
+    def get_open_cards_button(self):
+        return {
+            "type": "InlineKeyboardButton",
+            "text": "Open Cards",
+            "callback_data": "{}-click-{}".format(self.OP_REVEAL, self.vote_id),
+        }
 
     def get_markup(self):
         layout_rows = []
@@ -121,7 +113,7 @@ class Game:
             layout_rows.append(points_buttons_row)
 
         layout_rows.append(self.get_reset_buttons())
-        layout_rows.append(self.get_open_cards_buttons())
+        layout_rows.append([self.get_open_cards_button()])
 
         return {
             "type": "InlineKeyboardMarkup",
