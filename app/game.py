@@ -2,7 +2,9 @@ import aiosqlite
 import collections
 import json
 
-CARD_SUITES = "♥♦♠♣"
+CARD_SUITES = [
+    "♥️", "♠️", "♦️", "♣️",
+]
 
 POINTS_LAYOUT = [
     ["0", "0.5", "1", "2", "3", "4"],
