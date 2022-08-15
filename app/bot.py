@@ -59,6 +59,10 @@ async def start_poker(chat: Chat, match):
 async def start_poker(chat: Chat, match):
     vote_id = str(chat.message["message_id"])
     text = match.group(1)
+
+    if text in 'poker':
+        text = ''
+
     game = storage.new_game(chat.id, vote_id, chat.sender, text)
     resp = await chat.send_text(**game.get_send_kwargs())
     game.reply_message_id = resp["result"]["message_id"]
