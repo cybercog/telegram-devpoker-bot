@@ -22,12 +22,12 @@ Add any description after the command to provide context.
 
 Example:
 ```
-/poker https://issue\.tracker/TASK-123
+/poker https://issue.tracker/TASK-123
 ``` 
 
 Example with multiline description:
 ```
-/poker https://issue\.tracker/TASK-123
+/poker https://issue.tracker/TASK-123
 Design DevPoker bot keyboard layout
 ```
 

@@ -15,12 +15,14 @@ To start *Planning Poker* use /poker command\.
 Add any description after the command to provide context\. 
   
 *Example:*
-`/poker Design DevPoker bot keyboard layout`
+```
+/poker https://issue\.tracker/TASK-123
+```
 
 *Example with multiline description:*
 ```
-/poker Design DevPoker bot keyboard layout
-https://issue\.tracker/TASK-123
+/poker https://issue\.tracker/TASK-123
+Design DevPoker bot keyboard layout
 ```
 
 Currently, there is only one sequence of numbers from 0 to 30\.
