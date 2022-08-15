@@ -22,13 +22,13 @@ Add any description after the command to provide context.
 
 Example:
 ```
-/poker Design DevPoker Bot keyboard layout
+/poker https://issue\.tracker/TASK-123
 ``` 
 
 Example with multiline description:
 ```
-/poker Design DevPoker bot keyboard layout
-https://issue\.tracker/TASK-123
+/poker https://issue\.tracker/TASK-123
+Design DevPoker bot keyboard layout
 ```
 
 Only initiator can open cards or restart game at any moment. 
