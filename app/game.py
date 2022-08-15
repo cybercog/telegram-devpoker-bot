@@ -72,7 +72,7 @@ class LobbyVote:
 class Game:
     PHASE_INITIATING = "initiating"
     PHASE_VOTING = "voting"
-    PHASE_ENDED = "result"
+    PHASE_ENDED = "ended"
 
     OPERATION_START = "start"
     OPERATION_RESTART = "restart"
