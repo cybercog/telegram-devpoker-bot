@@ -32,6 +32,8 @@ Special cases:
 \* ♾️ — Impossible to estimate or task cannot be completed
 \* ❓— Unsure how to estimate
 \* ☕ — I need a break
+
+[Discussions on GitHub](https://github.com/cybercog/telegram-devpoker-bot/discussions)
 """
 
 bot = Bot(BOT_API_TOKEN)
@@ -50,7 +52,8 @@ INITIATOR_OPERATIONS = [
 async def on_help_command(chat: Chat, match):
     await chat.send_text(
         GREETING,
-        parse_mode="MarkdownV2"
+        parse_mode="MarkdownV2",
+        disable_web_page_preview=True,
     )
 
 
