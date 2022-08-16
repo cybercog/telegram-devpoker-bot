@@ -14,6 +14,36 @@ CARD_DECK_LAYOUT = [
 ]
 
 
+class DiscussionVote:
+    VOTE_TO_ESTIMATE = "to_estimate"
+    VOTE_NEED_DISCUSS = "need_discuss"
+
+    def __init__(self):
+        self.vote = ""
+
+    def set(self, vote):
+        self.vote = vote
+
+    @property
+    def icon(self):
+        if self.vote in self.VOTE_TO_ESTIMATE:
+            return "👍"
+        elif self.vote in self.VOTE_NEED_DISCUSS:
+            return "⁉️"
+
+    def to_dict(self):
+        return {
+            "vote": self.vote,
+        }
+
+    @classmethod
+    def from_dict(cls, dict):
+        result = cls()
+        result.vote = dict["vote"]
+
+        return result
+
+
 class EstimationVote:
     def __init__(self):
         self.vote = ""
@@ -38,33 +68,6 @@ class EstimationVote:
         result = cls()
         result.vote = dict["vote"]
         result.version = dict["version"]
-
-        return result
-
-
-class DiscussionVote:
-    def __init__(self):
-        self.vote = ""
-
-    def set(self, vote):
-        self.vote = vote
-
-    @property
-    def icon(self):
-        if self.vote in "to_estimate":
-            return "👍"
-        elif self.vote in "need_discuss":
-            return "⁉️"
-
-    def to_dict(self):
-        return {
-            "vote": self.vote,
-        }
-
-    @classmethod
-    def from_dict(cls, dict):
-        result = cls()
-        result.vote = dict["vote"]
 
         return result
 
@@ -170,25 +173,25 @@ class Game:
             "reply_markup": json.dumps(self.get_markup()),
         }
 
-    def get_point_button(self, point):
-        return {
-            "type": "InlineKeyboardButton",
-            "text": point,
-            "callback_data": "estimation-vote-click-{}-{}".format(self.message_id, point),
-        }
-
     def get_to_estimate_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "👍 To estimate",
-            "callback_data": "discussion-vote-click-{}-{}".format(self.message_id, "to_estimate"),
+            "callback_data": "discussion-vote-click-{}-{}".format(self.message_id, DiscussionVote.VOTE_TO_ESTIMATE),
         }
 
     def get_need_discuss_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "⁉️ Discuss",
-            "callback_data": "discussion-vote-click-{}-{}".format(self.message_id, "need_discuss"),
+            "callback_data": "discussion-vote-click-{}-{}".format(self.message_id, DiscussionVote.VOTE_NEED_DISCUSS),
+        }
+
+    def get_estimation_vote_button(self, vote):
+        return {
+            "type": "InlineKeyboardButton",
+            "text": vote,
+            "callback_data": "estimation-vote-click-{}-{}".format(self.message_id, vote),
         }
 
     def get_start_estimation_button(self):
@@ -235,11 +238,11 @@ class Game:
                 ]
             )
         elif self.phase in self.PHASE_ESTIMATION:
-            for points_layout_row in CARD_DECK_LAYOUT:
-                points_buttons_row = []
-                for point in points_layout_row:
-                    points_buttons_row.append(self.get_point_button(point))
-                layout_rows.append(points_buttons_row)
+            for votes_layout_row in CARD_DECK_LAYOUT:
+                vote_buttons_row = []
+                for vote in votes_layout_row:
+                    vote_buttons_row.append(self.get_estimation_vote_button(vote))
+                layout_rows.append(vote_buttons_row)
 
             layout_rows.append(
                 [
