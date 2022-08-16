@@ -40,10 +40,10 @@ bot = Bot(BOT_API_TOKEN)
 storage = GameRegistry()
 init_logging()
 INITIATOR_OPERATIONS = [
-    Game.OPERATION_START,
-    Game.OPERATION_RESTART,
-    Game.OPERATION_END,
-    Game.OPERATION_RE_VOTE,
+    Game.OPERATION_START_ESTIMATION,
+    Game.OPERATION_END_ESTIMATION,
+    Game.OPERATION_CLEAR_VOTES,
+    Game.OPERATION_RE_ESTIMATE,
 ]
 
 
@@ -59,12 +59,12 @@ async def on_help_command(chat: Chat, match):
 
 @bot.command("(?s)/poker\s+(.+)$")
 @bot.command("/(poker)$")
-async def on_start_poker_command(chat: Chat, match):
+async def on_poker_command(chat: Chat, match):
     vote_id = str(chat.message["message_id"])
     text = match.group(1)
 
-    if text in 'poker':
-        text = ''
+    if text in "poker":
+        text = ""
 
     game = storage.new_game(chat.id, vote_id, chat.sender, text)
     resp = await chat.send_text(**game.get_send_kwargs())
@@ -72,21 +72,21 @@ async def on_start_poker_command(chat: Chat, match):
     await storage.save_game(game)
 
 
-@bot.callback(r"ready-click-(.*?)-(.*?)$")
-async def on_lobby_vote_click(chat: Chat, callback_query: CallbackQuery, match):
+@bot.callback(r"discussion-vote-click-(.*?)-(.*?)$")
+async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, match):
     logbook.info("{}", callback_query)
     vote_id = match.group(1)
-    status = match.group(2)
-    result = "Start status `{}` accepted".format(status)
+    vote = match.group(2)
+    result = "Vote `{}` accepted".format(vote)
     game = await storage.get_game(chat.id, vote_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
 
-    if game.phase not in Game.PHASE_INITIATING:
-        return await callback_query.answer(text="Can't change ready status not in initiating phase")
+    if game.phase not in Game.PHASE_DISCUSSION:
+        return await callback_query.answer(text="Can't vote not in " + Game.PHASE_DISCUSSION + " phase")
 
-    game.add_lobby_vote(callback_query.src["from"], status)
+    game.add_discussion_vote(callback_query.src["from"], vote)
     await storage.save_game(game)
 
     await edit_message(chat, game)
@@ -94,21 +94,21 @@ async def on_lobby_vote_click(chat: Chat, callback_query: CallbackQuery, match):
     await callback_query.answer(text=result)
 
 
-@bot.callback(r"vote-click-(.*?)-(.*?)$")
-async def on_vote_click(chat: Chat, callback_query: CallbackQuery, match):
+@bot.callback(r"estimation-vote-click-(.*?)-(.*?)$")
+async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, match):
     logbook.info("{}", callback_query)
     vote_id = match.group(1)
-    point = match.group(2)
-    result = "Answer `{}` accepted".format(point)
+    vote = match.group(2)
+    result = "Vote `{}` accepted".format(vote)
     game = await storage.get_game(chat.id, vote_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
 
-    if game.phase not in Game.PHASE_VOTING:
-        return await callback_query.answer(text="Can't change vote not in voting phase")
+    if game.phase not in Game.PHASE_ESTIMATION:
+        return await callback_query.answer(text="Can't vote not in " + Game.PHASE_ESTIMATION + " phase")
 
-    game.add_vote(callback_query.src["from"], point)
+    game.add_estimation_vote(callback_query.src["from"], vote)
     await storage.save_game(game)
 
     await edit_message(chat, game)
@@ -126,46 +126,46 @@ async def on_initiator_operation_click(chat: Chat, callback_query: CallbackQuery
         return await callback_query.answer(text="No such game")
 
     if callback_query.src["from"]["id"] != game.initiator["id"]:
-        return await callback_query.answer(text="Operation '{}' is available only for initiator".format(operation))
+        return await callback_query.answer(text="Operation `{}` is available only for initiator".format(operation))
 
-    if operation in Game.OPERATION_START:
-        await run_operation_start(chat, game)
-    elif operation in Game.OPERATION_RESTART:
-        await run_operation_restart(chat, game)
-    elif operation in Game.OPERATION_END:
-        await run_operation_end(chat, game)
-    elif operation in Game.OPERATION_RE_VOTE:
-        await run_re_vote(chat, game)
+    if operation in Game.OPERATION_START_ESTIMATION:
+        await run_operation_start_estimation(chat, game)
+    elif operation in Game.OPERATION_END_ESTIMATION:
+        await run_operation_end_estimation(chat, game)
+    elif operation in Game.OPERATION_CLEAR_VOTES:
+        await run_operation_clear_votes(chat, game)
+    elif operation in Game.OPERATION_RE_ESTIMATE:
+        await run_re_estimate(chat, game)
     else:
         raise Exception("Unknown operation `{}`".format(operation))
 
     await callback_query.answer()
 
 
-async def run_operation_start(chat: Chat, game: Game):
-    game.start()
+async def run_operation_start_estimation(chat: Chat, game: Game):
+    game.start_estimation()
     await edit_message(chat, game)
     await storage.save_game(game)
 
 
-async def run_operation_restart(chat: Chat, game: Game):
-    game.restart()
+async def run_operation_clear_votes(chat: Chat, game: Game):
+    game.clear_votes()
     await edit_message(chat, game)
     await storage.save_game(game)
 
 
-async def run_operation_end(chat: Chat, game: Game):
-    game.end()
+async def run_operation_end_estimation(chat: Chat, game: Game):
+    game.end_estimation()
     await edit_message(chat, game)
     await storage.save_game(game)
 
 
-async def run_re_vote(chat: Chat, game: Game):
+async def run_re_estimate(chat: Chat, game: Game):
     message = {
-        "text": game.render(),
+        "text": game.render_message_text(),
     }
 
-    game.re_vote()
+    game.re_estimate()
 
     # TODO: Extract to method
     try:
@@ -192,5 +192,5 @@ def main():
     bot.run(reload=False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

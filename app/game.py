@@ -6,7 +6,7 @@ CARD_SUITES = [
     "♥️", "♠️", "♦️", "♣️",
 ]
 
-POINTS_LAYOUT = [
+CARD_DECK_LAYOUT = [
     ["0", "0.5", "1", "2", "3", "4"],
     ["5", "6", "7", "8", "9", "10"],
     ["12", "18", "24", "30"],
@@ -51,9 +51,9 @@ class LobbyVote:
 
     @property
     def icon(self):
-        if self.status in "ready":
+        if self.status in "to_estimate":
             return "👍"
-        elif self.status in "discuss":
+        elif self.status in "need_discuss":
             return "⁉️"
 
     def to_dict(self):
@@ -70,14 +70,14 @@ class LobbyVote:
 
 
 class Game:
-    PHASE_INITIATING = "initiating"
-    PHASE_VOTING = "voting"
-    PHASE_ENDED = "ended"
+    PHASE_DISCUSSION = "discussion"
+    PHASE_ESTIMATION = "estimation"
+    PHASE_RESOLUTION = "resolution"
 
-    OPERATION_START = "start"
-    OPERATION_RESTART = "restart"
-    OPERATION_END = "end"
-    OPERATION_RE_VOTE = "re-vote"
+    OPERATION_START_ESTIMATION = "start_estimation"
+    OPERATION_END_ESTIMATION = "end_estimation"
+    OPERATION_CLEAR_VOTES = "clear_votes"
+    OPERATION_RE_ESTIMATE = "re_estimate"
 
     def __init__(self, chat_id, vote_id, initiator, text):
         self.chat_id = chat_id
@@ -85,80 +85,86 @@ class Game:
         self.initiator = initiator
         self.text = text
         self.reply_message_id = 0
-        self.votes = collections.defaultdict(Vote)
-        self.lobby_votes = collections.defaultdict(LobbyVote)
+        self.estimation_votes = collections.defaultdict(Vote)
+        self.discussion_votes = collections.defaultdict(LobbyVote)
         self.revealed = False
-        self.phase = self.PHASE_INITIATING
+        self.phase = self.PHASE_DISCUSSION
 
-    def add_vote(self, initiator, point):
-        self.votes[self._initiator_str(initiator)].set(point)
+    def add_estimation_vote(self, initiator, vote):
+        self.estimation_votes[self._initiator_str(initiator)].set(vote)
 
-    def add_lobby_vote(self, initiator, status):
-        self.lobby_votes[self._initiator_str(initiator)].set(status)
+    def add_discussion_vote(self, initiator, vote):
+        self.discussion_votes[self._initiator_str(initiator)].set(vote)
 
-    def render(self):
+    def render_message_text(self):
         result = ""
 
-        result += self.render_summary()
+        result += self.render_initiator_text()
         result += "\n"
-        result += self.render_initiator()
+        result += self.render_topic_text()
         result += "\n"
         result += "\n"
-        if self.phase in self.PHASE_INITIATING:
-            result += self.render_lobby_votes()
-        else:
-            result += self.render_votes()
+        result += self.render_votes_text()
 
         return result
 
-    def render_summary(self):
+    def render_topic_text(self):
         result = ""
 
-        if self.text in '':
+        if self.text in "":
             return result
 
-        if self.phase in self.PHASE_INITIATING:
-            result += "Discuss for:"
-        elif self.phase in self.PHASE_VOTING:
-            result += "Vote for:"
-        else:
-            result += "Results for:"
+        if self.phase in self.PHASE_DISCUSSION:
+            result += "Discussion for: "
+        elif self.phase in self.PHASE_ESTIMATION:
+            result += "Estimation for: "
+        elif self.phase in self.PHASE_RESOLUTION:
+            result += "Resolution for: "
 
-        result += "\n"
         result += self.text
 
         return result
 
-    def render_initiator(self):
+    def render_initiator_text(self):
         return "Initiator: {}".format(self._initiator_str(self.initiator))
 
-    def render_lobby_votes(self):
-        lobby_votes_count = len(self.lobby_votes)
+    def render_votes_text(self):
+        if self.phase in self.PHASE_DISCUSSION:
+            return self.render_discussion_votes_text()
+        elif self.phase in self.PHASE_ESTIMATION:
+            return self.render_estimation_votes_text()
+        elif self.phase in self.PHASE_RESOLUTION:
+            return self.render_estimation_votes_text()
+        else:
+            return ""
+
+    def render_discussion_votes_text(self):
+        votes_count = len(self.discussion_votes)
 
         result = ""
 
-        if self.lobby_votes:
-            lobby_votes_string = "\n".join(
+        if self.discussion_votes:
+            votes_string = "\n".join(
                 "{:3s} {}".format(
                     vote.icon, user_id
                 )
-                for user_id, vote in sorted(self.lobby_votes.items())
+                for user_id, vote in sorted(self.discussion_votes.items())
             )
-            result += "Ready status ({}):\n{}".format(lobby_votes_count, lobby_votes_string)
+            result += "Votes ({}):\n{}".format(votes_count, votes_string)
 
         return result
 
-    def render_votes(self):
-        votes_count = len(self.votes)
+    def render_estimation_votes_text(self):
+        votes_count = len(self.estimation_votes)
 
         result = ""
 
-        if self.votes:
+        if self.estimation_votes:
             votes_string = "\n".join(
                 "{:3s} {}".format(
                     vote.point if self.revealed else vote.masked, user_id
                 )
-                for user_id, vote in sorted(self.votes.items())
+                for user_id, vote in sorted(self.estimation_votes.items())
             )
             result += "Votes ({}):\n{}".format(votes_count, votes_string)
 
@@ -166,7 +172,7 @@ class Game:
 
     def get_send_kwargs(self):
         return {
-            "text": self.render(),
+            "text": self.render_message_text(),
             "reply_markup": json.dumps(self.get_markup()),
         }
 
@@ -174,68 +180,68 @@ class Game:
         return {
             "type": "InlineKeyboardButton",
             "text": point,
-            "callback_data": "vote-click-{}-{}".format(self.vote_id, point),
+            "callback_data": "estimation-vote-click-{}-{}".format(self.vote_id, point),
         }
 
-    def get_ready_button(self):
+    def get_to_estimate_button(self):
         return {
             "type": "InlineKeyboardButton",
-            "text": "👍 Ready",
-            "callback_data": "ready-click-{}-{}".format(self.vote_id, 'ready'),
+            "text": "👍 To estimate",
+            "callback_data": "discussion-vote-click-{}-{}".format(self.vote_id, "to_estimate"),
         }
 
-    def get_discuss_button(self):
+    def get_need_discuss_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "⁉️ Discuss",
-            "callback_data": "ready-click-{}-{}".format(self.vote_id, 'discuss'),
+            "callback_data": "discussion-vote-click-{}-{}".format(self.vote_id, "need_discuss"),
         }
 
-    def get_start_button(self):
+    def get_start_estimation_button(self):
         return {
             "type": "InlineKeyboardButton",
-            "text": "Start",
-            "callback_data": "{}-click-{}".format(self.OPERATION_START, self.vote_id),
+            "text": "Start estimation",
+            "callback_data": "{}-click-{}".format(self.OPERATION_START_ESTIMATION, self.vote_id),
         }
 
-    def get_restart_button(self):
+    def get_clear_votes_button(self):
         return {
             "type": "InlineKeyboardButton",
-            "text": "Restart",
-            "callback_data": "{}-click-{}".format(self.OPERATION_RESTART, self.vote_id),
+            "text": "Clear votes",
+            "callback_data": "{}-click-{}".format(self.OPERATION_CLEAR_VOTES, self.vote_id),
         }
 
     def get_re_vote_button(self):
         return {
             "type": "InlineKeyboardButton",
-            "text": "Re-vote",
-            "callback_data": "{}-click-{}".format(self.OPERATION_RE_VOTE, self.vote_id),
+            "text": "Re-estimate",
+            "callback_data": "{}-click-{}".format(self.OPERATION_RE_ESTIMATE, self.vote_id),
         }
 
     def get_end_game_button(self):
         return {
             "type": "InlineKeyboardButton",
-            "text": "End game",
-            "callback_data": "{}-click-{}".format(self.OPERATION_END, self.vote_id),
+            "text": "End estimation",
+            "callback_data": "{}-click-{}".format(self.OPERATION_END_ESTIMATION, self.vote_id),
         }
 
     def get_markup(self):
         layout_rows = []
 
-        if self.phase in self.PHASE_INITIATING:
+        if self.phase in self.PHASE_DISCUSSION:
             layout_rows.append(
                 [
-                    self.get_ready_button(),
-                    self.get_discuss_button(),
+                    self.get_to_estimate_button(),
+                    self.get_need_discuss_button(),
                 ]
             )
             layout_rows.append(
                 [
-                    self.get_start_button(),
+                    self.get_start_estimation_button(),
                 ]
             )
-        elif self.phase in self.PHASE_VOTING:
-            for points_layout_row in POINTS_LAYOUT:
+        elif self.phase in self.PHASE_ESTIMATION:
+            for points_layout_row in CARD_DECK_LAYOUT:
                 points_buttons_row = []
                 for point in points_layout_row:
                     points_buttons_row.append(self.get_point_button(point))
@@ -243,11 +249,11 @@ class Game:
 
             layout_rows.append(
                 [
-                    self.get_restart_button(),
+                    self.get_clear_votes_button(),
                     self.get_end_game_button(),
                 ]
             )
-        elif self.phase in self.PHASE_ENDED:
+        elif self.phase in self.PHASE_RESOLUTION:
             layout_rows.append(
                 [
                     self.get_re_vote_button(),
@@ -259,21 +265,21 @@ class Game:
             "inline_keyboard": layout_rows,
         }
 
-    def start(self):
-        self.phase = self.PHASE_VOTING
+    def start_estimation(self):
+        self.phase = self.PHASE_ESTIMATION
 
-    def restart(self):
-        self.votes.clear()
-        self.phase = self.PHASE_VOTING
-
-    def end(self):
+    def end_estimation(self):
         self.revealed = True
-        self.phase = self.PHASE_ENDED
+        self.phase = self.PHASE_RESOLUTION
 
-    def re_vote(self):
-        self.votes.clear()
+    def clear_votes(self):
+        self.estimation_votes.clear()
+        self.phase = self.PHASE_ESTIMATION
+
+    def re_estimate(self):
+        self.estimation_votes.clear()
         self.revealed = False
-        self.phase = self.PHASE_VOTING
+        self.phase = self.PHASE_ESTIMATION
 
     @staticmethod
     def _initiator_str(initiator: dict) -> str:
@@ -289,8 +295,8 @@ class Game:
             "reply_message_id": self.reply_message_id,
             "phase": self.phase,
             "revealed": self.revealed,
-            "votes": {user_id: vote.to_dict() for user_id, vote in self.votes.items()},
-            "lobby_votes": {user_id: lobby_vote.to_dict() for user_id, lobby_vote in self.lobby_votes.items()},
+            "votes": {user_id: vote.to_dict() for user_id, vote in self.estimation_votes.items()},
+            "lobby_votes": {user_id: lobby_vote.to_dict() for user_id, lobby_vote in self.discussion_votes.items()},
         }
 
     @classmethod
@@ -301,10 +307,10 @@ class Game:
         result.phase = dict["phase"]
 
         for user_id, lobby_vote in dict["lobby_votes"].items():
-            result.lobby_votes[user_id] = LobbyVote.from_dict(lobby_vote)
+            result.discussion_votes[user_id] = LobbyVote.from_dict(lobby_vote)
 
         for user_id, vote in dict["votes"].items():
-            result.votes[user_id] = Vote.from_dict(vote)
+            result.estimation_votes[user_id] = Vote.from_dict(vote)
 
         return result
 
@@ -329,7 +335,7 @@ class GameRegistry:
         return Game(chat_id, incoming_message_id, initiator, text)
 
     async def get_game(self, chat_id, incoming_message_id: str) -> Game:
-        query = 'SELECT json_data FROM games WHERE chat_id = ? AND game_id = ?'
+        query = "SELECT json_data FROM games WHERE chat_id = ? AND game_id = ?"
         async with self._db.execute(query, (chat_id, incoming_message_id)) as cursor:
             result = await cursor.fetchone()
             if not result:
