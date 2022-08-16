@@ -34,10 +34,10 @@ class Vote:
         }
 
     @classmethod
-    def from_dict(cls, dct):
+    def from_dict(cls, dict):
         result = cls()
-        result.point = dct["point"]
-        result.version = dct["version"]
+        result.point = dict["point"]
+        result.version = dict["version"]
 
         return result
 
@@ -62,9 +62,9 @@ class LobbyVote:
         }
 
     @classmethod
-    def from_dict(cls, dct):
+    def from_dict(cls, dict):
         result = cls()
-        result.status = dct["status"]
+        result.status = dict["status"]
 
         return result
 
@@ -294,16 +294,16 @@ class Game:
         }
 
     @classmethod
-    def from_dict(cls, chat_id, vote_id, dct):
-        result = cls(chat_id, vote_id, dct["initiator"], dct["text"])
-        result.revealed = dct["revealed"]
-        result.reply_message_id = dct["reply_message_id"]
-        result.phase = dct["phase"]
+    def from_dict(cls, chat_id, vote_id, dict):
+        result = cls(chat_id, vote_id, dict["initiator"], dict["text"])
+        result.revealed = dict["revealed"]
+        result.reply_message_id = dict["reply_message_id"]
+        result.phase = dict["phase"]
 
-        for user_id, lobby_vote in dct["lobby_votes"].items():
+        for user_id, lobby_vote in dict["lobby_votes"].items():
             result.lobby_votes[user_id] = LobbyVote.from_dict(lobby_vote)
 
-        for user_id, vote in dct["votes"].items():
+        for user_id, vote in dict["votes"].items():
             result.votes[user_id] = Vote.from_dict(vote)
 
         return result
