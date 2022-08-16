@@ -70,60 +70,60 @@ async def on_start_poker_command(chat: Chat, match):
 
 
 @bot.callback(r"ready-click-(.*?)-(.*?)$")
-async def on_lobby_vote_click(chat: Chat, cq: CallbackQuery, match):
-    logbook.info("{}", cq)
+async def on_lobby_vote_click(chat: Chat, callback_query: CallbackQuery, match):
+    logbook.info("{}", callback_query)
     vote_id = match.group(1)
     status = match.group(2)
     result = "Start status `{}` accepted".format(status)
     game = await storage.get_game(chat.id, vote_id)
 
     if not game:
-        return await cq.answer(text="No such game")
+        return await callback_query.answer(text="No such game")
 
     if game.phase not in Game.PHASE_INITIATING:
-        return await cq.answer(text="Can't change ready status not in initiating phase")
+        return await callback_query.answer(text="Can't change ready status not in initiating phase")
 
-    game.add_lobby_vote(cq.src["from"], status)
+    game.add_lobby_vote(callback_query.src["from"], status)
     await storage.save_game(game)
 
     await edit_message(chat, game)
 
-    await cq.answer(text=result)
+    await callback_query.answer(text=result)
 
 
 @bot.callback(r"vote-click-(.*?)-(.*?)$")
-async def on_vote_click(chat: Chat, cq: CallbackQuery, match):
-    logbook.info("{}", cq)
+async def on_vote_click(chat: Chat, callback_query: CallbackQuery, match):
+    logbook.info("{}", callback_query)
     vote_id = match.group(1)
     point = match.group(2)
     result = "Answer `{}` accepted".format(point)
     game = await storage.get_game(chat.id, vote_id)
 
     if not game:
-        return await cq.answer(text="No such game")
+        return await callback_query.answer(text="No such game")
 
     if game.phase not in Game.PHASE_VOTING:
-        return await cq.answer(text="Can't change vote not in voting phase")
+        return await callback_query.answer(text="Can't change vote not in voting phase")
 
-    game.add_vote(cq.src["from"], point)
+    game.add_vote(callback_query.src["from"], point)
     await storage.save_game(game)
 
     await edit_message(chat, game)
 
-    await cq.answer(text=result)
+    await callback_query.answer(text=result)
 
 
 @bot.callback(r"({})-click-(.*?)$".format("|".join(INITIATOR_OPERATIONS)))
-async def on_initiator_operation_click(chat: Chat, cq: CallbackQuery, match):
+async def on_initiator_operation_click(chat: Chat, callback_query: CallbackQuery, match):
     operation = match.group(1)
     vote_id = match.group(2)
     game = await storage.get_game(chat.id, vote_id)
 
     if not game:
-        return await cq.answer(text="No such game")
+        return await callback_query.answer(text="No such game")
 
-    if cq.src["from"]["id"] != game.initiator["id"]:
-        return await cq.answer(text="Operation '{}' is available only for initiator".format(operation))
+    if callback_query.src["from"]["id"] != game.initiator["id"]:
+        return await callback_query.answer(text="Operation '{}' is available only for initiator".format(operation))
 
     if operation in Game.OPERATION_START:
         await run_operation_start(chat, game)
@@ -136,7 +136,7 @@ async def on_initiator_operation_click(chat: Chat, cq: CallbackQuery, match):
     else:
         raise Exception("Unknown operation `{}`".format(operation))
 
-    await cq.answer()
+    await callback_query.answer()
 
 
 async def run_operation_start(chat: Chat, game: Game):
