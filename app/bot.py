@@ -166,7 +166,7 @@ async def run_operation_end(chat: Chat, game: Game):
     await edit_message(chat, game)
 
 
-async def edit_message(chat, game):
+async def edit_message(chat: Chat, game: Game):
     try:
         # TODO: Extract to method
         await bot.edit_message_text(chat.id, game.reply_message_id, **game.get_send_kwargs())
