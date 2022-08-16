@@ -132,47 +132,52 @@ async def on_initiator_operation_click(chat: Chat, cq: CallbackQuery, match):
     elif operation in Game.OPERATION_END:
         await run_operation_end(chat, game)
     elif operation in Game.OPERATION_RE_VOTE:
-        # TODO: Extract to method
-        original_message_text = game.render()
-
-        game.re_vote()
-
-        message = {
-            "text": original_message_text,
-        }
-
-        try:
-            await bot.edit_message_text(chat.id, game.reply_message_id, **message)
-        except BotApiError:
-            logbook.exception("Error when updating markup")
-
-        response = await chat.send_text(**game.get_send_kwargs())
-        game.reply_message_id = response["result"]["message_id"]
+        await run_re_vote(chat, game)
     else:
         raise Exception("Unknown operation `{}`".format(operation))
 
-    await storage.save_game(game)
     await cq.answer()
 
 
 async def run_operation_start(chat: Chat, game: Game):
     game.start()
     await edit_message(chat, game)
+    await storage.save_game(game)
 
 
 async def run_operation_restart(chat: Chat, game: Game):
     game.restart()
     await edit_message(chat, game)
+    await storage.save_game(game)
 
 
 async def run_operation_end(chat: Chat, game: Game):
     game.end()
     await edit_message(chat, game)
+    await storage.save_game(game)
+
+
+async def run_re_vote(chat: Chat, game: Game):
+    message = {
+        "text": game.render(),
+    }
+
+    game.re_vote()
+
+    # TODO: Extract to method
+    try:
+        await bot.edit_message_text(chat.id, game.reply_message_id, **message)
+    except BotApiError:
+        logbook.exception("Error when updating markup")
+
+    response = await chat.send_text(**game.get_send_kwargs())
+    game.reply_message_id = response["result"]["message_id"]
+
+    await storage.save_game(game)
 
 
 async def edit_message(chat: Chat, game: Game):
     try:
-        # TODO: Extract to method
         await bot.edit_message_text(chat.id, game.reply_message_id, **game.get_send_kwargs())
     except BotApiError:
         logbook.exception("Error when updating markup")
