@@ -61,14 +61,14 @@ async def on_help_command(chat: Chat, match):
 @bot.command("/(poker)$")
 async def on_poker_command(chat: Chat, match):
     vote_id = str(chat.message["message_id"])
-    text = match.group(1)
+    topic = match.group(1)
 
-    if text in "poker":
-        text = ""
+    if topic == "poker":
+        topic = "(no topic)"
 
-    game = storage.new_game(chat.id, vote_id, chat.sender, text)
-    resp = await chat.send_text(**game.get_send_kwargs())
-    game.reply_message_id = resp["result"]["message_id"]
+    game = storage.new_game(chat.id, vote_id, chat.sender, topic)
+    response = await chat.send_text(**game.get_send_kwargs())
+    game.reply_message_id = response["result"]["message_id"]
     await storage.save_game(game)
 
 

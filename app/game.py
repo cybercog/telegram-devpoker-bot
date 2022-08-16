@@ -110,9 +110,6 @@ class Game:
     def render_topic_text(self):
         result = ""
 
-        if self.text in "":
-            return result
-
         if self.phase in self.PHASE_DISCUSSION:
             result += "Discussion for: "
         elif self.phase in self.PHASE_ESTIMATION:
