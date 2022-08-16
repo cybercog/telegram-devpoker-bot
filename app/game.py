@@ -114,7 +114,12 @@ class Game:
     def render_summary(self):
         result = ""
 
-        if not self.revealed:
+        if self.text in '':
+            return result
+
+        if self.phase in self.PHASE_INITIATING:
+            result += "Discuss for:"
+        elif self.phase in self.PHASE_VOTING:
             result += "Vote for:"
         else:
             result += "Results for:"
