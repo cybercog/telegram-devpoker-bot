@@ -64,7 +64,7 @@ async def on_poker_command(chat: Chat, match):
     text = match.group(1)
 
     if text in "poker":
-        text = ""
+        text = "(no topic)"
 
     game = storage.new_game(chat.id, vote_id, chat.sender, text)
     resp = await chat.send_text(**game.get_send_kwargs())
