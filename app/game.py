@@ -87,7 +87,6 @@ class Game:
         self.reply_message_id = 0
         self.estimation_votes = collections.defaultdict(Vote)
         self.discussion_votes = collections.defaultdict(LobbyVote)
-        self.revealed = False
         self.phase = self.PHASE_DISCUSSION
 
     def add_estimation_vote(self, initiator, vote):
@@ -162,7 +161,7 @@ class Game:
         if self.estimation_votes:
             votes_string = "\n".join(
                 "{:3s} {}".format(
-                    vote.point if self.revealed else vote.masked, user_id
+                    vote.point if self.phase == self.PHASE_RESOLUTION else vote.masked, user_id
                 )
                 for user_id, vote in sorted(self.estimation_votes.items())
             )
@@ -269,7 +268,6 @@ class Game:
         self.phase = self.PHASE_ESTIMATION
 
     def end_estimation(self):
-        self.revealed = True
         self.phase = self.PHASE_RESOLUTION
 
     def clear_votes(self):
@@ -278,7 +276,6 @@ class Game:
 
     def re_estimate(self):
         self.estimation_votes.clear()
-        self.revealed = False
         self.phase = self.PHASE_ESTIMATION
 
     @staticmethod
