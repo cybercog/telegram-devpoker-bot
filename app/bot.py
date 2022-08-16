@@ -86,10 +86,7 @@ async def on_lobby_vote_click(chat: Chat, cq: CallbackQuery, match):
     game.add_lobby_vote(cq.src["from"], status)
     await storage.save_game(game)
 
-    try:
-        await bot.edit_message_text(chat.id, game.reply_message_id, **game.get_send_kwargs())
-    except BotApiError:
-        logbook.exception("Error when updating markup")
+    await edit_message(chat, game)
 
     await cq.answer(text=result)
 
@@ -111,10 +108,7 @@ async def on_vote_click(chat: Chat, cq: CallbackQuery, match):
     game.add_vote(cq.src["from"], point)
     await storage.save_game(game)
 
-    try:
-        await bot.edit_message_text(chat.id, game.reply_message_id, **game.get_send_kwargs())
-    except BotApiError:
-        logbook.exception("Error when updating markup")
+    await edit_message(chat, game)
 
     await cq.answer(text=result)
 
