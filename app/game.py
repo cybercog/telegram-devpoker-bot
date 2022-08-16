@@ -14,13 +14,13 @@ CARD_DECK_LAYOUT = [
 ]
 
 
-class Vote:
+class EstimationVote:
     def __init__(self):
-        self.point = ""
+        self.vote = ""
         self.version = -1
 
-    def set(self, point):
-        self.point = point
+    def set(self, vote):
+        self.vote = vote
         self.version += 1
 
     @property
@@ -29,42 +29,42 @@ class Vote:
 
     def to_dict(self):
         return {
-            "point": self.point,
+            "vote": self.vote,
             "version": self.version,
         }
 
     @classmethod
     def from_dict(cls, dict):
         result = cls()
-        result.point = dict["point"]
+        result.vote = dict["vote"]
         result.version = dict["version"]
 
         return result
 
 
-class LobbyVote:
+class DiscussionVote:
     def __init__(self):
-        self.status = ""
+        self.vote = ""
 
-    def set(self, status):
-        self.status = status
+    def set(self, vote):
+        self.vote = vote
 
     @property
     def icon(self):
-        if self.status in "to_estimate":
+        if self.vote in "to_estimate":
             return "👍"
-        elif self.status in "need_discuss":
+        elif self.vote in "need_discuss":
             return "⁉️"
 
     def to_dict(self):
         return {
-            "status": self.status,
+            "vote": self.vote,
         }
 
     @classmethod
     def from_dict(cls, dict):
         result = cls()
-        result.status = dict["status"]
+        result.vote = dict["vote"]
 
         return result
 
@@ -85,8 +85,8 @@ class Game:
         self.initiator = initiator
         self.text = text
         self.reply_message_id = 0
-        self.estimation_votes = collections.defaultdict(Vote)
-        self.discussion_votes = collections.defaultdict(LobbyVote)
+        self.estimation_votes = collections.defaultdict(EstimationVote)
+        self.discussion_votes = collections.defaultdict(DiscussionVote)
         self.phase = self.PHASE_DISCUSSION
 
     def add_estimation_vote(self, initiator, vote):
@@ -138,8 +138,6 @@ class Game:
             return ""
 
     def render_discussion_votes_text(self):
-        votes_count = len(self.discussion_votes)
-
         result = ""
 
         if self.discussion_votes:
@@ -149,22 +147,22 @@ class Game:
                 )
                 for user_id, vote in sorted(self.discussion_votes.items())
             )
+            votes_count = len(self.discussion_votes)
             result += "Votes ({}):\n{}".format(votes_count, votes_string)
 
         return result
 
     def render_estimation_votes_text(self):
-        votes_count = len(self.estimation_votes)
-
         result = ""
 
         if self.estimation_votes:
             votes_string = "\n".join(
                 "{:3s} {}".format(
-                    vote.point if self.phase == self.PHASE_RESOLUTION else vote.masked, user_id
+                    vote.vote if self.phase == self.PHASE_RESOLUTION else vote.masked, user_id
                 )
                 for user_id, vote in sorted(self.estimation_votes.items())
             )
+            votes_count = len(self.estimation_votes)
             result += "Votes ({}):\n{}".format(votes_count, votes_string)
 
         return result
@@ -291,8 +289,8 @@ class Game:
             "text": self.text,
             "reply_message_id": self.reply_message_id,
             "phase": self.phase,
-            "votes": {user_id: vote.to_dict() for user_id, vote in self.estimation_votes.items()},
-            "lobby_votes": {user_id: lobby_vote.to_dict() for user_id, lobby_vote in self.discussion_votes.items()},
+            "discussion_votes": {user_id: discussion_vote.to_dict() for user_id, discussion_vote in self.discussion_votes.items()},
+            "estimation_votes": {user_id: estimation_vote.to_dict() for user_id, estimation_vote in self.estimation_votes.items()},
         }
 
     @classmethod
@@ -301,11 +299,11 @@ class Game:
         result.reply_message_id = dict["reply_message_id"]
         result.phase = dict["phase"]
 
-        for user_id, lobby_vote in dict["lobby_votes"].items():
-            result.discussion_votes[user_id] = LobbyVote.from_dict(lobby_vote)
+        for user_id, discussion_vote in dict["discussion_votes"].items():
+            result.discussion_votes[user_id] = DiscussionVote.from_dict(discussion_vote)
 
-        for user_id, vote in dict["votes"].items():
-            result.estimation_votes[user_id] = Vote.from_dict(vote)
+        for user_id, estimation_vote in dict["estimation_votes"].items():
+            result.estimation_votes[user_id] = EstimationVote.from_dict(estimation_vote)
 
         return result
 
