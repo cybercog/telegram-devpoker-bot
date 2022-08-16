@@ -1,10 +1,7 @@
-import aiosqlite
+from app.discussion_vote import DiscussionVote
+from app.estimation_vote import EstimationVote
 import collections
 import json
-
-CARD_SUITES = [
-    "♥️", "♠️", "♦️", "♣️",
-]
 
 CARD_DECK_LAYOUT = [
     ["0", "0.5", "1", "2", "3", "4"],
@@ -12,64 +9,6 @@ CARD_DECK_LAYOUT = [
     ["12", "18", "24", "30"],
     ["✂️", "♾️", "❓", "☕"],
 ]
-
-
-class DiscussionVote:
-    VOTE_TO_ESTIMATE = "to_estimate"
-    VOTE_NEED_DISCUSS = "need_discuss"
-
-    def __init__(self):
-        self.vote = ""
-
-    def set(self, vote):
-        self.vote = vote
-
-    @property
-    def icon(self):
-        if self.vote in self.VOTE_TO_ESTIMATE:
-            return "👍"
-        elif self.vote in self.VOTE_NEED_DISCUSS:
-            return "⁉️"
-
-    def to_dict(self):
-        return {
-            "vote": self.vote,
-        }
-
-    @classmethod
-    def from_dict(cls, dict):
-        result = cls()
-        result.vote = dict["vote"]
-
-        return result
-
-
-class EstimationVote:
-    def __init__(self):
-        self.vote = ""
-        self.version = -1
-
-    def set(self, vote):
-        self.vote = vote
-        self.version += 1
-
-    @property
-    def masked(self):
-        return CARD_SUITES[self.version % len(CARD_SUITES)]
-
-    def to_dict(self):
-        return {
-            "vote": self.vote,
-            "version": self.version,
-        }
-
-    @classmethod
-    def from_dict(cls, dict):
-        result = cls()
-        result.vote = dict["vote"]
-        result.version = dict["version"]
-
-        return result
 
 
 class Game:
@@ -289,8 +228,10 @@ class Game:
             "text": self.text,
             "reply_message_id": self.reply_message_id,
             "phase": self.phase,
-            "discussion_votes": {user_id: discussion_vote.to_dict() for user_id, discussion_vote in self.discussion_votes.items()},
-            "estimation_votes": {user_id: estimation_vote.to_dict() for user_id, estimation_vote in self.estimation_votes.items()},
+            "discussion_votes": {user_id: discussion_vote.to_dict() for user_id, discussion_vote in
+                                 self.discussion_votes.items()},
+            "estimation_votes": {user_id: estimation_vote.to_dict() for user_id, estimation_vote in
+                                 self.estimation_votes.items()},
         }
 
     @classmethod
@@ -306,38 +247,3 @@ class Game:
             result.estimation_votes[user_id] = EstimationVote.from_dict(estimation_vote)
 
         return result
-
-
-class GameRegistry:
-    def __init__(self):
-        self._db = None
-
-    async def init_db(self, db_path):
-        con = aiosqlite.connect(db_path)
-        con.daemon = True
-        self._db = await con
-        await self._db.execute("""
-            CREATE TABLE IF NOT EXISTS games (
-                chat_id, game_id, 
-                json_data,
-                PRIMARY KEY (chat_id, game_id)
-            )
-        """)
-
-    def new_game(self, chat_id, incoming_message_id: str, initiator: dict, text: str):
-        return Game(chat_id, incoming_message_id, initiator, text)
-
-    async def get_game(self, chat_id, incoming_message_id: str) -> Game:
-        query = "SELECT json_data FROM games WHERE chat_id = ? AND game_id = ?"
-        async with self._db.execute(query, (chat_id, incoming_message_id)) as cursor:
-            result = await cursor.fetchone()
-            if not result:
-                return None
-            return Game.from_dict(chat_id, incoming_message_id, json.loads(result[0]))
-
-    async def save_game(self, game: Game):
-        await self._db.execute(
-            "INSERT OR REPLACE INTO games VALUES (?, ?, ?)",
-            (game.chat_id, game.message_id, json.dumps(game.to_dict()))
-        )
-        await self._db.commit()

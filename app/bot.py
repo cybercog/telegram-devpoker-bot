@@ -1,11 +1,10 @@
-import asyncio
-import os
-
-import logbook
 from aiotg import Bot, Chat, CallbackQuery, BotApiError
-
 from app.utils import init_logging
-from app.game import GameRegistry, Game
+from app.game import Game
+from app.game_registry import GameRegistry
+import asyncio
+import logbook
+import os
 
 BOT_API_TOKEN = os.environ["DEVPOKER_BOT_API_TOKEN"]
 DB_PATH = os.environ["DEVPOKER_BOT_DB_PATH"]
