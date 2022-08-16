@@ -291,7 +291,6 @@ class Game:
             "text": self.text,
             "reply_message_id": self.reply_message_id,
             "phase": self.phase,
-            "revealed": self.revealed,
             "votes": {user_id: vote.to_dict() for user_id, vote in self.estimation_votes.items()},
             "lobby_votes": {user_id: lobby_vote.to_dict() for user_id, lobby_vote in self.discussion_votes.items()},
         }
@@ -299,7 +298,6 @@ class Game:
     @classmethod
     def from_dict(cls, chat_id, vote_id, dict):
         result = cls(chat_id, vote_id, dict["initiator"], dict["text"])
-        result.revealed = dict["revealed"]
         result.reply_message_id = dict["reply_message_id"]
         result.phase = dict["phase"]
 
