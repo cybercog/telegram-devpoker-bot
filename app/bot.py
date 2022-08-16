@@ -133,12 +133,16 @@ async def on_initiator_operation_click(chat: Chat, cq: CallbackQuery, match):
         await run_operation_end(chat, game)
     elif operation in Game.OPERATION_RE_VOTE:
         # TODO: Extract to method
-        current_text = game.render()
+        original_message_text = game.render()
 
         game.re_vote()
 
+        message = {
+            "text": original_message_text,
+        }
+
         try:
-            await bot.edit_message_text(chat.id, game.reply_message_id, text=current_text)
+            await bot.edit_message_text(chat.id, game.reply_message_id, **message)
         except BotApiError:
             logbook.exception("Error when updating markup")
 
