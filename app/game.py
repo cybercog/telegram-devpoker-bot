@@ -79,9 +79,9 @@ class Game:
     OPERATION_CLEAR_VOTES = "clear_votes"
     OPERATION_RE_ESTIMATE = "re_estimate"
 
-    def __init__(self, chat_id, vote_id, initiator, text):
+    def __init__(self, chat_id, message_id, initiator, text):
         self.chat_id = chat_id
-        self.vote_id = vote_id
+        self.message_id = message_id
         self.initiator = initiator
         self.text = text
         self.reply_message_id = 0
@@ -174,49 +174,49 @@ class Game:
         return {
             "type": "InlineKeyboardButton",
             "text": point,
-            "callback_data": "estimation-vote-click-{}-{}".format(self.vote_id, point),
+            "callback_data": "estimation-vote-click-{}-{}".format(self.message_id, point),
         }
 
     def get_to_estimate_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "👍 To estimate",
-            "callback_data": "discussion-vote-click-{}-{}".format(self.vote_id, "to_estimate"),
+            "callback_data": "discussion-vote-click-{}-{}".format(self.message_id, "to_estimate"),
         }
 
     def get_need_discuss_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "⁉️ Discuss",
-            "callback_data": "discussion-vote-click-{}-{}".format(self.vote_id, "need_discuss"),
+            "callback_data": "discussion-vote-click-{}-{}".format(self.message_id, "need_discuss"),
         }
 
     def get_start_estimation_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "Start estimation",
-            "callback_data": "{}-click-{}".format(self.OPERATION_START_ESTIMATION, self.vote_id),
+            "callback_data": "{}-click-{}".format(self.OPERATION_START_ESTIMATION, self.message_id),
         }
 
     def get_clear_votes_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "Clear votes",
-            "callback_data": "{}-click-{}".format(self.OPERATION_CLEAR_VOTES, self.vote_id),
+            "callback_data": "{}-click-{}".format(self.OPERATION_CLEAR_VOTES, self.message_id),
         }
 
     def get_re_vote_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "Re-estimate",
-            "callback_data": "{}-click-{}".format(self.OPERATION_RE_ESTIMATE, self.vote_id),
+            "callback_data": "{}-click-{}".format(self.OPERATION_RE_ESTIMATE, self.message_id),
         }
 
     def get_end_game_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "End estimation",
-            "callback_data": "{}-click-{}".format(self.OPERATION_END_ESTIMATION, self.vote_id),
+            "callback_data": "{}-click-{}".format(self.OPERATION_END_ESTIMATION, self.message_id),
         }
 
     def get_markup(self):
@@ -291,8 +291,8 @@ class Game:
         }
 
     @classmethod
-    def from_dict(cls, chat_id, vote_id, dict):
-        result = cls(chat_id, vote_id, dict["initiator"], dict["text"])
+    def from_dict(cls, chat_id, message_id, dict):
+        result = cls(chat_id, message_id, dict["initiator"], dict["text"])
         result.reply_message_id = dict["reply_message_id"]
         result.phase = dict["phase"]
 
@@ -335,6 +335,6 @@ class GameRegistry:
     async def save_game(self, game: Game):
         await self._db.execute(
             "INSERT OR REPLACE INTO games VALUES (?, ?, ?)",
-            (game.chat_id, game.vote_id, json.dumps(game.to_dict()))
+            (game.chat_id, game.message_id, json.dumps(game.to_dict()))
         )
         await self._db.commit()

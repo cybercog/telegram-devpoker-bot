@@ -60,13 +60,13 @@ async def on_help_command(chat: Chat, match):
 @bot.command("(?s)/poker\s+(.+)$")
 @bot.command("/(poker)$")
 async def on_poker_command(chat: Chat, match):
-    vote_id = str(chat.message["message_id"])
+    message_id = str(chat.message["message_id"])
     topic = match.group(1)
 
     if topic == "poker":
         topic = "(no topic)"
 
-    game = storage.new_game(chat.id, vote_id, chat.sender, topic)
+    game = storage.new_game(chat.id, message_id, chat.sender, topic)
     response = await chat.send_text(**game.get_send_kwargs())
     game.reply_message_id = response["result"]["message_id"]
     await storage.save_game(game)
@@ -75,10 +75,10 @@ async def on_poker_command(chat: Chat, match):
 @bot.callback(r"discussion-vote-click-(.*?)-(.*?)$")
 async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, match):
     logbook.info("{}", callback_query)
-    vote_id = match.group(1)
+    message_id = match.group(1)
     vote = match.group(2)
     result = "Vote `{}` accepted".format(vote)
-    game = await storage.get_game(chat.id, vote_id)
+    game = await storage.get_game(chat.id, message_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
@@ -97,10 +97,10 @@ async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, ma
 @bot.callback(r"estimation-vote-click-(.*?)-(.*?)$")
 async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, match):
     logbook.info("{}", callback_query)
-    vote_id = match.group(1)
+    message_id = match.group(1)
     vote = match.group(2)
     result = "Vote `{}` accepted".format(vote)
-    game = await storage.get_game(chat.id, vote_id)
+    game = await storage.get_game(chat.id, message_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
@@ -119,8 +119,8 @@ async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, ma
 @bot.callback(r"({})-click-(.*?)$".format("|".join(INITIATOR_OPERATIONS)))
 async def on_initiator_operation_click(chat: Chat, callback_query: CallbackQuery, match):
     operation = match.group(1)
-    vote_id = match.group(2)
-    game = await storage.get_game(chat.id, vote_id)
+    message_id = match.group(2)
+    game = await storage.get_game(chat.id, message_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
