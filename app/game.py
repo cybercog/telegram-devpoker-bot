@@ -21,10 +21,10 @@ class Game:
     OPERATION_CLEAR_VOTES = "clear_votes"
     OPERATION_RE_ESTIMATE = "re_estimate"
 
-    def __init__(self, chat_id, message_id, initiator, topic):
+    def __init__(self, chat_id, topic_message_id, initiator, topic):
         self.chat_id = chat_id
-        self.reply_message_id = 0
-        self.message_id = message_id
+        self.topic_message_id = topic_message_id
+        self.game_message_id = 0
         self.phase = self.PHASE_DISCUSSION
         self.initiator = initiator
         self.topic = topic
@@ -116,49 +116,49 @@ class Game:
         return {
             "type": "InlineKeyboardButton",
             "text": "👍 To estimate",
-            "callback_data": "discussion-vote-click-{}-{}".format(self.message_id, DiscussionVote.VOTE_TO_ESTIMATE),
+            "callback_data": "discussion-vote-click-{}-{}".format(self.topic_message_id, DiscussionVote.VOTE_TO_ESTIMATE),
         }
 
     def get_need_discuss_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "⁉️ Discuss",
-            "callback_data": "discussion-vote-click-{}-{}".format(self.message_id, DiscussionVote.VOTE_NEED_DISCUSS),
+            "callback_data": "discussion-vote-click-{}-{}".format(self.topic_message_id, DiscussionVote.VOTE_NEED_DISCUSS),
         }
 
     def get_estimation_vote_button(self, vote):
         return {
             "type": "InlineKeyboardButton",
             "text": vote,
-            "callback_data": "estimation-vote-click-{}-{}".format(self.message_id, vote),
+            "callback_data": "estimation-vote-click-{}-{}".format(self.topic_message_id, vote),
         }
 
     def get_start_estimation_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "Start estimation",
-            "callback_data": "{}-click-{}".format(self.OPERATION_START_ESTIMATION, self.message_id),
+            "callback_data": "{}-click-{}".format(self.OPERATION_START_ESTIMATION, self.topic_message_id),
         }
 
     def get_clear_votes_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "Clear votes",
-            "callback_data": "{}-click-{}".format(self.OPERATION_CLEAR_VOTES, self.message_id),
+            "callback_data": "{}-click-{}".format(self.OPERATION_CLEAR_VOTES, self.topic_message_id),
         }
 
     def get_re_vote_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "Re-estimate",
-            "callback_data": "{}-click-{}".format(self.OPERATION_RE_ESTIMATE, self.message_id),
+            "callback_data": "{}-click-{}".format(self.OPERATION_RE_ESTIMATE, self.topic_message_id),
         }
 
     def get_end_game_button(self):
         return {
             "type": "InlineKeyboardButton",
             "text": "End estimation",
-            "callback_data": "{}-click-{}".format(self.OPERATION_END_ESTIMATION, self.message_id),
+            "callback_data": "{}-click-{}".format(self.OPERATION_END_ESTIMATION, self.topic_message_id),
         }
 
     def get_markup(self):
@@ -224,7 +224,7 @@ class Game:
 
     def to_dict(self):
         return {
-            "reply_message_id": self.reply_message_id,
+            "game_message_id": self.game_message_id,
             "phase": self.phase,
             "initiator": self.initiator,
             "topic": self.topic,
@@ -239,9 +239,9 @@ class Game:
         }
 
     @classmethod
-    def from_dict(cls, chat_id, message_id, dict):
-        result = cls(chat_id, message_id, dict["initiator"], dict["topic"])
-        result.reply_message_id = dict["reply_message_id"]
+    def from_dict(cls, chat_id, topic_message_id, dict):
+        result = cls(chat_id, topic_message_id, dict["initiator"], dict["topic"])
+        result.game_message_id = dict["game_message_id"]
         result.phase = dict["phase"]
 
         for user_id, discussion_vote in dict["discussion_votes"].items():

@@ -59,25 +59,23 @@ async def on_help_command(chat: Chat, match):
 @bot.command("(?s)/poker\s+(.+)$")
 @bot.command("/(poker)$")
 async def on_poker_command(chat: Chat, match):
-    message_id = str(chat.message["message_id"])
+    topic_message_id = str(chat.message["message_id"])
     topic = match.group(1)
 
     if topic == "poker":
         topic = "(no topic)"
 
-    game = Game(chat.id, message_id, chat.sender, topic)
-    response = await chat.send_text(**game.get_send_kwargs())
-    game.reply_message_id = response["result"]["message_id"]
-    await game_registry.save_game(game)
+    game = Game(chat.id, topic_message_id, chat.sender, topic)
+    await create_new_game_message(chat, game)
 
 
 @bot.callback(r"discussion-vote-click-(.*?)-(.*?)$")
 async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, match):
     logbook.info("{}", callback_query)
-    message_id = match.group(1)
+    topic_message_id = int(match.group(1))
     vote = match.group(2)
     result = "Vote `{}` accepted".format(vote)
-    game = await game_registry.find_game(chat.id, message_id)
+    game = await game_registry.find_game(chat.id, topic_message_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
@@ -86,7 +84,7 @@ async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, ma
         return await callback_query.answer(text="Can't vote not in " + Game.PHASE_DISCUSSION + " phase")
 
     game.add_discussion_vote(callback_query.src["from"], vote)
-    await game_registry.save_game(game)
+    await game_registry.update_game(game)
 
     await edit_message(chat, game)
 
@@ -96,10 +94,10 @@ async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, ma
 @bot.callback(r"estimation-vote-click-(.*?)-(.*?)$")
 async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, match):
     logbook.info("{}", callback_query)
-    message_id = match.group(1)
+    topic_message_id = int(match.group(1))
     vote = match.group(2)
     result = "Vote `{}` accepted".format(vote)
-    game = await game_registry.find_game(chat.id, message_id)
+    game = await game_registry.find_game(chat.id, topic_message_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
@@ -108,7 +106,7 @@ async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, ma
         return await callback_query.answer(text="Can't vote not in " + Game.PHASE_ESTIMATION + " phase")
 
     game.add_estimation_vote(callback_query.src["from"], vote)
-    await game_registry.save_game(game)
+    await game_registry.update_game(game)
 
     await edit_message(chat, game)
 
@@ -118,8 +116,8 @@ async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, ma
 @bot.callback(r"({})-click-(.*?)$".format("|".join(INITIATOR_OPERATIONS)))
 async def on_initiator_operation_click(chat: Chat, callback_query: CallbackQuery, match):
     operation = match.group(1)
-    message_id = match.group(2)
-    game = await game_registry.find_game(chat.id, message_id)
+    topic_message_id = int(match.group(2))
+    game = await game_registry.find_game(chat.id, topic_message_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
@@ -144,19 +142,19 @@ async def on_initiator_operation_click(chat: Chat, callback_query: CallbackQuery
 async def run_operation_start_estimation(chat: Chat, game: Game):
     game.start_estimation()
     await edit_message(chat, game)
-    await game_registry.save_game(game)
+    await game_registry.update_game(game)
 
 
 async def run_operation_clear_votes(chat: Chat, game: Game):
     game.clear_votes()
     await edit_message(chat, game)
-    await game_registry.save_game(game)
+    await game_registry.update_game(game)
 
 
 async def run_operation_end_estimation(chat: Chat, game: Game):
     game.end_estimation()
     await edit_message(chat, game)
-    await game_registry.save_game(game)
+    await game_registry.update_game(game)
 
 
 async def run_re_estimate(chat: Chat, game: Game):
@@ -168,19 +166,22 @@ async def run_re_estimate(chat: Chat, game: Game):
 
     # TODO: Extract to method
     try:
-        await bot.edit_message_text(chat.id, game.reply_message_id, **message)
+        await bot.edit_message_text(chat.id, game.game_message_id, **message)
     except BotApiError:
         logbook.exception("Error when updating markup")
 
-    response = await chat.send_text(**game.get_send_kwargs())
-    game.reply_message_id = response["result"]["message_id"]
+    await create_new_game_message(chat, game)
 
-    await game_registry.save_game(game)
+
+async def create_new_game_message(chat: Chat, game: Game):
+    response = await chat.send_text(**game.get_send_kwargs())
+    game.game_message_id = response["result"]["message_id"]
+    await game_registry.create_game(game)
 
 
 async def edit_message(chat: Chat, game: Game):
     try:
-        await bot.edit_message_text(chat.id, game.reply_message_id, **game.get_send_kwargs())
+        await bot.edit_message_text(chat.id, game.game_message_id, **game.get_send_kwargs())
     except BotApiError:
         logbook.exception("Error when updating markup")
 
