@@ -54,8 +54,6 @@ class GameRegistry:
             return Game.from_dict(chat_id, topic_message_id, json.loads(result[0]))
 
     async def create_game(self, game: Game):
-        datetime_now = datetime.utcnow()
-
         await self.db_connection.execute(
             """
                 INSERT INTO game
