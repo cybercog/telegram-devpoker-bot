@@ -21,15 +21,15 @@ class Game:
     OPERATION_CLEAR_VOTES = "clear_votes"
     OPERATION_RE_ESTIMATE = "re_estimate"
 
-    def __init__(self, chat_id, message_id, initiator, text):
+    def __init__(self, chat_id, message_id, initiator, topic):
         self.chat_id = chat_id
-        self.message_id = message_id
-        self.initiator = initiator
-        self.text = text
         self.reply_message_id = 0
+        self.message_id = message_id
+        self.phase = self.PHASE_DISCUSSION
+        self.initiator = initiator
+        self.topic = topic
         self.estimation_votes = collections.defaultdict(EstimationVote)
         self.discussion_votes = collections.defaultdict(DiscussionVote)
-        self.phase = self.PHASE_DISCUSSION
 
     def add_estimation_vote(self, initiator, vote):
         self.estimation_votes[self._initiator_str(initiator)].set(vote)
@@ -59,7 +59,7 @@ class Game:
         elif self.phase in self.PHASE_RESOLUTION:
             result += "Resolution for: "
 
-        result += self.text
+        result += self.topic
 
         return result
 
@@ -73,8 +73,6 @@ class Game:
             return self.render_estimation_votes_text()
         elif self.phase in self.PHASE_RESOLUTION:
             return self.render_estimation_votes_text()
-        else:
-            return ""
 
     def render_discussion_votes_text(self):
         result = ""
@@ -82,9 +80,10 @@ class Game:
         if self.discussion_votes:
             votes_string = "\n".join(
                 "{:3s} {}".format(
-                    vote.icon, user_id
+                    discussion_vote.icon,
+                    user_id,
                 )
-                for user_id, vote in sorted(self.discussion_votes.items())
+                for user_id, discussion_vote in sorted(self.discussion_votes.items())
             )
             votes_count = len(self.discussion_votes)
             result += "Votes ({}):\n{}".format(votes_count, votes_string)
@@ -97,9 +96,10 @@ class Game:
         if self.estimation_votes:
             votes_string = "\n".join(
                 "{:3s} {}".format(
-                    vote.vote if self.phase == self.PHASE_RESOLUTION else vote.masked, user_id
+                    estimation_vote.vote if self.phase == self.PHASE_RESOLUTION else estimation_vote.masked,
+                    user_id,
                 )
-                for user_id, vote in sorted(self.estimation_votes.items())
+                for user_id, estimation_vote in sorted(self.estimation_votes.items())
             )
             votes_count = len(self.estimation_votes)
             result += "Votes ({}):\n{}".format(votes_count, votes_string)
@@ -224,19 +224,23 @@ class Game:
 
     def to_dict(self):
         return {
-            "initiator": self.initiator,
-            "text": self.text,
             "reply_message_id": self.reply_message_id,
             "phase": self.phase,
-            "discussion_votes": {user_id: discussion_vote.to_dict() for user_id, discussion_vote in
-                                 self.discussion_votes.items()},
-            "estimation_votes": {user_id: estimation_vote.to_dict() for user_id, estimation_vote in
-                                 self.estimation_votes.items()},
+            "initiator": self.initiator,
+            "topic": self.topic,
+            "discussion_votes": {
+                user_id: discussion_vote.to_dict() for user_id, discussion_vote in
+                self.discussion_votes.items()
+            },
+            "estimation_votes": {
+                user_id: estimation_vote.to_dict() for user_id, estimation_vote in
+                self.estimation_votes.items()
+            },
         }
 
     @classmethod
     def from_dict(cls, chat_id, message_id, dict):
-        result = cls(chat_id, message_id, dict["initiator"], dict["text"])
+        result = cls(chat_id, message_id, dict["initiator"], dict["topic"])
         result.reply_message_id = dict["reply_message_id"]
         result.phase = dict["phase"]
 
