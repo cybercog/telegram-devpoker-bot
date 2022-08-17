@@ -31,11 +31,25 @@ class Game:
         self.estimation_votes = collections.defaultdict(EstimationVote)
         self.discussion_votes = collections.defaultdict(DiscussionVote)
 
-    def add_estimation_vote(self, initiator, vote):
-        self.estimation_votes[self._initiator_str(initiator)].set(vote)
+    def start_estimation(self):
+        self.phase = self.PHASE_ESTIMATION
+
+    def end_estimation(self):
+        self.phase = self.PHASE_RESOLUTION
+
+    def clear_votes(self):
+        self.estimation_votes.clear()
+        self.phase = self.PHASE_ESTIMATION
+
+    def re_estimate(self):
+        self.estimation_votes.clear()
+        self.phase = self.PHASE_ESTIMATION
 
     def add_discussion_vote(self, initiator, vote):
         self.discussion_votes[self._initiator_str(initiator)].set(vote)
+
+    def add_estimation_vote(self, initiator, vote):
+        self.estimation_votes[self._initiator_str(initiator)].set(vote)
 
     def render_message_text(self):
         result = ""
@@ -201,20 +215,6 @@ class Game:
             "inline_keyboard": layout_rows,
         }
 
-    def start_estimation(self):
-        self.phase = self.PHASE_ESTIMATION
-
-    def end_estimation(self):
-        self.phase = self.PHASE_RESOLUTION
-
-    def clear_votes(self):
-        self.estimation_votes.clear()
-        self.phase = self.PHASE_ESTIMATION
-
-    def re_estimate(self):
-        self.estimation_votes.clear()
-        self.phase = self.PHASE_ESTIMATION
-
     @staticmethod
     def _initiator_str(initiator: dict) -> str:
         return "@{} ({})".format(
@@ -222,20 +222,20 @@ class Game:
             initiator["first_name"]
         )
 
+    @staticmethod
+    def votes_to_json(votes):
+        return {
+            user_id: vote.to_dict() for user_id, vote in votes.items()
+        }
+
     def to_dict(self):
         return {
             "game_message_id": self.game_message_id,
             "phase": self.phase,
             "initiator": self.initiator,
             "topic": self.topic,
-            "discussion_votes": {
-                user_id: discussion_vote.to_dict() for user_id, discussion_vote in
-                self.discussion_votes.items()
-            },
-            "estimation_votes": {
-                user_id: estimation_vote.to_dict() for user_id, estimation_vote in
-                self.estimation_votes.items()
-            },
+            "discussion_votes": self.votes_to_json(self.discussion_votes),
+            "estimation_votes": self.votes_to_json(self.estimation_votes),
         }
 
     @classmethod
