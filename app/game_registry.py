@@ -6,13 +6,10 @@ class GameRegistry:
     def __init__(self):
         self.db_connection = None
 
-    def new_game(self, chat_id, message_id: str, initiator: dict, text: str):
-        return Game(chat_id, message_id, initiator, text)
-
     async def init_db(self, db_path):
-        connection = aiosqlite.connect(db_path)
-        connection.daemon = True
-        self.db_connection = await connection
+        db_connection = aiosqlite.connect(db_path)
+        db_connection.daemon = True
+        self.db_connection = await db_connection
         await self.run_migrations()
 
     async def run_migrations(self):
@@ -27,7 +24,7 @@ class GameRegistry:
             """
         )
 
-    async def get_game(self, chat_id, message_id: str) -> Game:
+    async def find_game(self, chat_id, message_id: str) -> Game:
         query = """
             SELECT json_data
             FROM game

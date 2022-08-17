@@ -36,7 +36,7 @@ Special cases:
 """
 
 bot = Bot(BOT_API_TOKEN)
-storage = GameRegistry()
+game_registry = GameRegistry()
 init_logging()
 INITIATOR_OPERATIONS = [
     Game.OPERATION_START_ESTIMATION,
@@ -65,10 +65,10 @@ async def on_poker_command(chat: Chat, match):
     if topic == "poker":
         topic = "(no topic)"
 
-    game = storage.new_game(chat.id, message_id, chat.sender, topic)
+    game = Game(chat.id, message_id, chat.sender, topic)
     response = await chat.send_text(**game.get_send_kwargs())
     game.reply_message_id = response["result"]["message_id"]
-    await storage.save_game(game)
+    await game_registry.save_game(game)
 
 
 @bot.callback(r"discussion-vote-click-(.*?)-(.*?)$")
@@ -77,7 +77,7 @@ async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, ma
     message_id = match.group(1)
     vote = match.group(2)
     result = "Vote `{}` accepted".format(vote)
-    game = await storage.get_game(chat.id, message_id)
+    game = await game_registry.find_game(chat.id, message_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
@@ -86,7 +86,7 @@ async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, ma
         return await callback_query.answer(text="Can't vote not in " + Game.PHASE_DISCUSSION + " phase")
 
     game.add_discussion_vote(callback_query.src["from"], vote)
-    await storage.save_game(game)
+    await game_registry.save_game(game)
 
     await edit_message(chat, game)
 
@@ -99,7 +99,7 @@ async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, ma
     message_id = match.group(1)
     vote = match.group(2)
     result = "Vote `{}` accepted".format(vote)
-    game = await storage.get_game(chat.id, message_id)
+    game = await game_registry.find_game(chat.id, message_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
@@ -108,7 +108,7 @@ async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, ma
         return await callback_query.answer(text="Can't vote not in " + Game.PHASE_ESTIMATION + " phase")
 
     game.add_estimation_vote(callback_query.src["from"], vote)
-    await storage.save_game(game)
+    await game_registry.save_game(game)
 
     await edit_message(chat, game)
 
@@ -119,7 +119,7 @@ async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, ma
 async def on_initiator_operation_click(chat: Chat, callback_query: CallbackQuery, match):
     operation = match.group(1)
     message_id = match.group(2)
-    game = await storage.get_game(chat.id, message_id)
+    game = await game_registry.find_game(chat.id, message_id)
 
     if not game:
         return await callback_query.answer(text="No such game")
@@ -144,19 +144,19 @@ async def on_initiator_operation_click(chat: Chat, callback_query: CallbackQuery
 async def run_operation_start_estimation(chat: Chat, game: Game):
     game.start_estimation()
     await edit_message(chat, game)
-    await storage.save_game(game)
+    await game_registry.save_game(game)
 
 
 async def run_operation_clear_votes(chat: Chat, game: Game):
     game.clear_votes()
     await edit_message(chat, game)
-    await storage.save_game(game)
+    await game_registry.save_game(game)
 
 
 async def run_operation_end_estimation(chat: Chat, game: Game):
     game.end_estimation()
     await edit_message(chat, game)
-    await storage.save_game(game)
+    await game_registry.save_game(game)
 
 
 async def run_re_estimate(chat: Chat, game: Game):
@@ -175,7 +175,7 @@ async def run_re_estimate(chat: Chat, game: Game):
     response = await chat.send_text(**game.get_send_kwargs())
     game.reply_message_id = response["result"]["message_id"]
 
-    await storage.save_game(game)
+    await game_registry.save_game(game)
 
 
 async def edit_message(chat: Chat, game: Game):
@@ -187,7 +187,7 @@ async def edit_message(chat: Chat, game: Game):
 
 def main():
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(storage.init_db(DB_PATH))
+    loop.run_until_complete(game_registry.init_db(DB_PATH))
     bot.run(reload=False)
 
 
