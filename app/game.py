@@ -91,32 +91,36 @@ class Game:
     def render_discussion_votes_text(self):
         result = ""
 
-        if self.discussion_votes:
-            votes_string = "\n".join(
-                "{:3s} {}".format(
+        votes_count = len(self.discussion_votes)
+
+        if votes_count > 0:
+            result += "Votes ({}):".format(votes_count)
+            result += "\n"
+            result += join(
+                "{} {}".format(
                     discussion_vote.icon,
                     user_id,
                 )
                 for user_id, discussion_vote in sorted(self.discussion_votes.items())
             )
-            votes_count = len(self.discussion_votes)
-            result += "Votes ({}):\n{}".format(votes_count, votes_string)
 
         return result
 
     def render_estimation_votes_text(self):
         result = ""
 
-        if self.estimation_votes:
-            votes_string = "\n".join(
-                "{:3s} {}".format(
+        votes_count = len(self.estimation_votes)
+
+        if votes_count > 0:
+            result += "Votes ({}):".format(votes_count)
+            result += "\n"
+            result += join(
+                "{} {}".format(
                     estimation_vote.vote if self.phase == self.PHASE_RESOLUTION else estimation_vote.masked,
                     user_id,
                 )
                 for user_id, estimation_vote in sorted(self.estimation_votes.items())
             )
-            votes_count = len(self.estimation_votes)
-            result += "Votes ({}):\n{}".format(votes_count, votes_string)
 
         return result
 
