@@ -23,7 +23,9 @@ class GameRegistry:
                     topic_message_id INTEGER NOT NULL,
                     phase TEXT NOT NULL,
                     topic TEXT NOT NULL,
-                    json_data TEXT NOT NULL
+                    json_data TEXT NOT NULL,
+                    created_at DATETIME NOT NULL,
+                    updated_at DATETIME NOT NULL
                 )
             """
         )
@@ -52,6 +54,8 @@ class GameRegistry:
             return Game.from_dict(chat_id, topic_message_id, json.loads(result[0]))
 
     async def create_game(self, game: Game):
+        datetime_now = datetime.utcnow()
+
         await self.db_connection.execute(
             """
                 INSERT INTO game
@@ -61,14 +65,18 @@ class GameRegistry:
                     topic_message_id,
                     phase,
                     topic,
-                    json_data
+                    json_data,
+                    created_at,
+                    updated_at
                 ) VALUES (
                     ?,
                     ?,
                     ?,
                     ?,
                     ?,
-                    ?
+                    ?,
+                    datetime('now'),
+                    datetime('now')
                 )
             """,
             (
@@ -87,7 +95,8 @@ class GameRegistry:
             """
                 UPDATE game
                 SET phase = ?,
-                    json_data = ?
+                    json_data = ?,
+                    updated_at = datetime('now')
                 WHERE chat_id = ?
                 AND game_message_id = ?
             """,
