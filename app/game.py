@@ -96,7 +96,7 @@ class Game:
         if votes_count > 0:
             result += "Votes ({}):".format(votes_count)
             result += "\n"
-            result += join(
+            result += "\n".join(
                 "{} {}".format(
                     discussion_vote.icon,
                     user_id,
@@ -114,7 +114,7 @@ class Game:
         if votes_count > 0:
             result += "Votes ({}):".format(votes_count)
             result += "\n"
-            result += join(
+            result += "\n".join(
                 "{} {}".format(
                     estimation_vote.vote if self.phase == self.PHASE_RESOLUTION else estimation_vote.masked,
                     user_id,
