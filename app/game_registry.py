@@ -17,27 +17,30 @@ class GameRegistry:
             """
                 CREATE TABLE IF NOT EXISTS game (
                     chat_id,
-                    message_id,
+                    game_message_id,
+                    topic_message_id,
+                    phase,
+                    topic,
                     json_data,
-                    PRIMARY KEY (chat_id, message_id)
+                    PRIMARY KEY (chat_id, game_message_id)
                 )
             """
         )
 
-    async def find_game(self, chat_id, message_id: str) -> Game:
+    async def find_game(self, chat_id: int, game_message_id: int) -> Game:
         query = """
-            SELECT json_data
+            SELECT json_data, topic_message_id
             FROM game
             WHERE chat_id = ?
-            AND message_id = ?
+            AND game_message_id = ?
         """
-        async with self.db_connection.execute(query, (chat_id, message_id)) as cursor:
+        async with self.db_connection.execute(query, (chat_id, game_message_id)) as cursor:
             result = await cursor.fetchone()
 
             if not result:
                 return None
 
-            return Game.from_dict(chat_id, message_id, json.loads(result[0]))
+            return Game.from_dict(chat_id, game_message_id, result[1], json.loads(result[0]))
 
     async def save_game(self, game: Game):
         await self.db_connection.execute(
@@ -45,9 +48,15 @@ class GameRegistry:
                 INSERT OR REPLACE INTO game
                 (
                     chat_id,
-                    message_id,
+                    game_message_id,
+                    topic_message_id,
+                    phase,
+                    topic,
                     json_data
                 ) VALUES (
+                    ?,
+                    ?,
+                    ?,
                     ?,
                     ?,
                     ?
@@ -55,7 +64,10 @@ class GameRegistry:
             """,
             (
                 game.chat_id,
-                game.message_id,
+                game.game_message_id,
+                game.topic_message_id,
+                game.phase,
+                game.topic,
                 json.dumps(game.to_dict()),
             )
         )
