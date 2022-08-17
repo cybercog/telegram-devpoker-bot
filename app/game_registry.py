@@ -4,34 +4,62 @@ import json
 
 class GameRegistry:
     def __init__(self):
-        self._db = None
+        self.db_connection = None
 
-    def new_game(self, chat_id, incoming_message_id: str, initiator: dict, text: str):
-        return Game(chat_id, incoming_message_id, initiator, text)
+    def new_game(self, chat_id, message_id: str, initiator: dict, text: str):
+        return Game(chat_id, message_id, initiator, text)
 
     async def init_db(self, db_path):
-        con = aiosqlite.connect(db_path)
-        con.daemon = True
-        self._db = await con
-        await self._db.execute("""
-            CREATE TABLE IF NOT EXISTS games (
-                chat_id, game_id, 
-                json_data,
-                PRIMARY KEY (chat_id, game_id)
-            )
-        """)
+        connection = aiosqlite.connect(db_path)
+        connection.daemon = True
+        self.db_connection = await connection
+        await self.run_migrations()
 
-    async def get_game(self, chat_id, incoming_message_id: str) -> Game:
-        query = "SELECT json_data FROM games WHERE chat_id = ? AND game_id = ?"
-        async with self._db.execute(query, (chat_id, incoming_message_id)) as cursor:
+    async def run_migrations(self):
+        await self.db_connection.execute(
+            """
+                CREATE TABLE IF NOT EXISTS game (
+                    chat_id,
+                    message_id,
+                    json_data,
+                    PRIMARY KEY (chat_id, message_id)
+                )
+            """
+        )
+
+    async def get_game(self, chat_id, message_id: str) -> Game:
+        query = """
+            SELECT json_data
+            FROM game
+            WHERE chat_id = ?
+            AND message_id = ?
+        """
+        async with self.db_connection.execute(query, (chat_id, message_id)) as cursor:
             result = await cursor.fetchone()
+
             if not result:
                 return None
-            return Game.from_dict(chat_id, incoming_message_id, json.loads(result[0]))
+
+            return Game.from_dict(chat_id, message_id, json.loads(result[0]))
 
     async def save_game(self, game: Game):
-        await self._db.execute(
-            "INSERT OR REPLACE INTO games VALUES (?, ?, ?)",
-            (game.chat_id, game.message_id, json.dumps(game.to_dict()))
+        await self.db_connection.execute(
+            """
+                INSERT OR REPLACE INTO game
+                (
+                    chat_id,
+                    message_id,
+                    json_data
+                ) VALUES (
+                    ?,
+                    ?,
+                    ?
+                )
+            """,
+            (
+                game.chat_id,
+                game.message_id,
+                json.dumps(game.to_dict()),
+            )
         )
-        await self._db.commit()
+        await self.db_connection.commit()
