@@ -130,18 +130,11 @@ class Game:
             "reply_markup": json.dumps(self.get_markup()),
         }
 
-    def get_to_estimate_button(self):
+    def get_discussion_vote_button(self, vote, text):
         return {
             "type": "InlineKeyboardButton",
-            "text": "👍 To estimate",
-            "callback_data": "discussion-vote-click-{}-{}".format(self.topic_message_id, DiscussionVote.VOTE_TO_ESTIMATE),
-        }
-
-    def get_need_discuss_button(self):
-        return {
-            "type": "InlineKeyboardButton",
-            "text": "⁉️ Discuss",
-            "callback_data": "discussion-vote-click-{}-{}".format(self.topic_message_id, DiscussionVote.VOTE_NEED_DISCUSS),
+            "text": text,
+            "callback_data": "discussion-vote-click-{}-{}".format(self.topic_message_id, vote),
         }
 
     def get_estimation_vote_button(self, vote):
@@ -185,8 +178,8 @@ class Game:
         if self.phase in self.PHASE_DISCUSSION:
             layout_rows.append(
                 [
-                    self.get_to_estimate_button(),
-                    self.get_need_discuss_button(),
+                    self.get_discussion_vote_button(DiscussionVote.VOTE_TO_ESTIMATE, "👍 To estimate"),
+                    self.get_discussion_vote_button(DiscussionVote.VOTE_NEED_DISCUSS, "⁉️ Discuss"),
                 ]
             )
             layout_rows.append(
