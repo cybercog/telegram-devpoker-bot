@@ -3,13 +3,6 @@ from app.estimation_vote import EstimationVote
 import collections
 import json
 
-CARD_DECK_LAYOUT = [
-    ["0", "0.5", "1", "2", "3", "4"],
-    ["5", "6", "7", "8", "9", "10"],
-    ["12", "18", "24", "30"],
-    ["✂️", "♾️", "❓", "☕"],
-]
-
 
 class Game:
     PHASE_DISCUSSION = "discussion"
@@ -20,6 +13,13 @@ class Game:
     OPERATION_END_ESTIMATION = "end_estimation"
     OPERATION_CLEAR_VOTES = "clear_votes"
     OPERATION_RE_ESTIMATE = "re_estimate"
+
+    CARD_DECK_LAYOUT = [
+        ["0", "0.5", "1", "2", "3", "4"],
+        ["5", "6", "7", "8", "9", "10"],
+        ["12", "18", "24", "30"],
+        ["✂️", "♾️", "❓", "☕"],
+    ]
 
     def __init__(self, chat_id, topic_message_id, initiator, topic):
         self.chat_id = chat_id
@@ -46,10 +46,16 @@ class Game:
         self.phase = self.PHASE_ESTIMATION
 
     def add_discussion_vote(self, initiator, vote):
-        self.discussion_votes[self._initiator_str(initiator)].set(vote)
+        self.discussion_votes[self.initiator_to_string(initiator)].set(vote)
 
     def add_estimation_vote(self, initiator, vote):
-        self.estimation_votes[self._initiator_str(initiator)].set(vote)
+        self.estimation_votes[self.initiator_to_string(initiator)].set(vote)
+
+    def render_message(self):
+        return {
+            "text": self.render_message_text(),
+            "reply_markup": json.dumps(self.render_message_buttons()),
+        }
 
     def render_message_text(self):
         result = ""
@@ -62,6 +68,9 @@ class Game:
         result += self.render_votes_text()
 
         return result
+
+    def render_initiator_text(self):
+        return "Initiator: {}".format(self.initiator_to_string(self.initiator))
 
     def render_topic_text(self):
         result = ""
@@ -76,9 +85,6 @@ class Game:
         result += self.topic
 
         return result
-
-    def render_initiator_text(self):
-        return "Initiator: {}".format(self._initiator_str(self.initiator))
 
     def render_votes_text(self):
         if self.phase in self.PHASE_DISCUSSION:
@@ -124,86 +130,38 @@ class Game:
 
         return result
 
-    def get_send_kwargs(self):
-        return {
-            "text": self.render_message_text(),
-            "reply_markup": json.dumps(self.get_markup()),
-        }
-
-    def get_discussion_vote_button(self, vote, text):
-        return {
-            "type": "InlineKeyboardButton",
-            "text": text,
-            "callback_data": "discussion-vote-click-{}-{}".format(self.topic_message_id, vote),
-        }
-
-    def get_estimation_vote_button(self, vote):
-        return {
-            "type": "InlineKeyboardButton",
-            "text": vote,
-            "callback_data": "estimation-vote-click-{}-{}".format(self.topic_message_id, vote),
-        }
-
-    def get_start_estimation_button(self):
-        return {
-            "type": "InlineKeyboardButton",
-            "text": "Start estimation",
-            "callback_data": "{}-click-{}".format(self.OPERATION_START_ESTIMATION, self.topic_message_id),
-        }
-
-    def get_clear_votes_button(self):
-        return {
-            "type": "InlineKeyboardButton",
-            "text": "Clear votes",
-            "callback_data": "{}-click-{}".format(self.OPERATION_CLEAR_VOTES, self.topic_message_id),
-        }
-
-    def get_re_vote_button(self):
-        return {
-            "type": "InlineKeyboardButton",
-            "text": "Re-estimate",
-            "callback_data": "{}-click-{}".format(self.OPERATION_RE_ESTIMATE, self.topic_message_id),
-        }
-
-    def get_end_game_button(self):
-        return {
-            "type": "InlineKeyboardButton",
-            "text": "End estimation",
-            "callback_data": "{}-click-{}".format(self.OPERATION_END_ESTIMATION, self.topic_message_id),
-        }
-
-    def get_markup(self):
+    def render_message_buttons(self):
         layout_rows = []
 
         if self.phase in self.PHASE_DISCUSSION:
             layout_rows.append(
                 [
-                    self.get_discussion_vote_button(DiscussionVote.VOTE_TO_ESTIMATE, "👍 To estimate"),
-                    self.get_discussion_vote_button(DiscussionVote.VOTE_NEED_DISCUSS, "⁉️ Discuss"),
+                    self.render_discussion_vote_button(DiscussionVote.VOTE_TO_ESTIMATE, "👍 To estimate"),
+                    self.render_discussion_vote_button(DiscussionVote.VOTE_NEED_DISCUSS, "⁉️ Discuss"),
                 ]
             )
             layout_rows.append(
                 [
-                    self.get_start_estimation_button(),
+                    self.render_operation_button(self.OPERATION_START_ESTIMATION, "Start estimation"),
                 ]
             )
         elif self.phase in self.PHASE_ESTIMATION:
-            for votes_layout_row in CARD_DECK_LAYOUT:
+            for votes_layout_row in self.CARD_DECK_LAYOUT:
                 vote_buttons_row = []
                 for vote in votes_layout_row:
-                    vote_buttons_row.append(self.get_estimation_vote_button(vote))
+                    vote_buttons_row.append(self.render_estimation_vote_button(vote))
                 layout_rows.append(vote_buttons_row)
 
             layout_rows.append(
                 [
-                    self.get_clear_votes_button(),
-                    self.get_end_game_button(),
+                    self.render_operation_button(self.OPERATION_CLEAR_VOTES, "Clear votes"),
+                    self.render_operation_button(self.OPERATION_END_ESTIMATION, "End estimation"),
                 ]
             )
         elif self.phase in self.PHASE_RESOLUTION:
             layout_rows.append(
                 [
-                    self.get_re_vote_button(),
+                    self.render_operation_button(self.OPERATION_RE_ESTIMATE, "Re-estimate"),
                 ]
             )
 
@@ -212,8 +170,29 @@ class Game:
             "inline_keyboard": layout_rows,
         }
 
+    def render_discussion_vote_button(self, vote, text):
+        return {
+            "type": "InlineKeyboardButton",
+            "text": text,
+            "callback_data": "discussion-vote-click-{}-{}".format(self.topic_message_id, vote),
+        }
+
+    def render_estimation_vote_button(self, vote):
+        return {
+            "type": "InlineKeyboardButton",
+            "text": vote,
+            "callback_data": "estimation-vote-click-{}-{}".format(self.topic_message_id, vote),
+        }
+
+    def render_operation_button(self, operation, text):
+        return {
+            "type": "InlineKeyboardButton",
+            "text": text,
+            "callback_data": "{}-click-{}".format(operation, self.topic_message_id),
+        }
+
     @staticmethod
-    def _initiator_str(initiator: dict) -> str:
+    def initiator_to_string(initiator: dict) -> str:
         return "@{} ({})".format(
             initiator.get("username") or initiator.get("id"),
             initiator["first_name"]

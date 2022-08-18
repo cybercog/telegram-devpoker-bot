@@ -174,14 +174,14 @@ async def run_re_estimate(chat: Chat, game: Game):
 
 
 async def create_new_game_message(chat: Chat, game: Game):
-    response = await chat.send_text(**game.get_send_kwargs())
+    response = await chat.send_text(**game.render_message())
     game.game_message_id = response["result"]["message_id"]
     await game_registry.create_game(game)
 
 
 async def edit_message(chat: Chat, game: Game):
     try:
-        await bot.edit_message_text(chat.id, game.game_message_id, **game.get_send_kwargs())
+        await bot.edit_message_text(chat.id, game.game_message_id, **game.render_message())
     except BotApiError:
         logbook.exception("Error when updating markup")
 
