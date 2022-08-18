@@ -155,7 +155,7 @@ class Game:
             layout_rows.append(
                 [
                     self.render_operation_button(self.OPERATION_CLEAR_VOTES, "Clear votes"),
-                    self.render_operation_button(self.OPERATION_START_ESTIMATION, "End estimation"),
+                    self.render_operation_button(self.OPERATION_END_ESTIMATION, "End estimation"),
                 ]
             )
         elif self.phase in self.PHASE_RESOLUTION:
