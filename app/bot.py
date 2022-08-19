@@ -11,8 +11,8 @@ DB_PATH = os.environ["DEVPOKER_BOT_DB_PATH"]
 
 GREETING = """
 To start *Planning Poker* use /poker command\.
-Add any description after the command to provide context\. 
-  
+Add any description after the command to provide context\.
+
 *Example:*
 ```
 /poker https://issue\.tracker/TASK-123
