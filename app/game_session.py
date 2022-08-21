@@ -1,5 +1,7 @@
 from app.discussion_vote import DiscussionVote
 from app.estimation_vote import EstimationVote
+from app.telegram_user import TelegramUser
+from app.game import Game
 import collections
 import json
 
@@ -21,16 +23,24 @@ class GameSession:
         ["✂️", "♾️", "❓", "☕"],
     ]
 
-    def __init__(self, game_id, chat_id, facilitator_message_id, topic, facilitator):
-        self.game_id = game_id
+    def __init__(self, game: Game, chat_id: int, facilitator_message_id: int, topic: str, facilitator: TelegramUser):
+        self.id = None
+        self.system_message_id = None
+        self.game = game
         self.chat_id = chat_id
         self.facilitator_message_id = facilitator_message_id
-        self.system_message_id = 0
         self.phase = self.PHASE_DISCUSSION
         self.topic = topic
         self.facilitator = facilitator
         self.estimation_votes = collections.defaultdict(EstimationVote)
         self.discussion_votes = collections.defaultdict(DiscussionVote)
+
+    @property
+    def game_id(self) -> int:
+        if self.game is None:
+            return None
+        else:
+            return self.game.id
 
     def start_estimation(self):
         self.phase = self.PHASE_ESTIMATION
@@ -46,21 +56,23 @@ class GameSession:
         self.estimation_votes.clear()
         self.phase = self.PHASE_ESTIMATION
 
-    def add_discussion_vote(self, facilitator, vote):
-        self.discussion_votes[self.facilitator_to_string(facilitator)].set(vote)
+    def add_discussion_vote(self, player, vote):
+        self.discussion_votes[self.player_to_string(player)].set(vote)
 
-    def add_estimation_vote(self, facilitator, vote):
-        self.estimation_votes[self.facilitator_to_string(facilitator)].set(vote)
+    def add_estimation_vote(self, player, vote):
+        self.estimation_votes[self.player_to_string(player)].set(vote)
 
-    def render_message(self):
+    def render_system_message(self):
         return {
-            "text": self.render_message_text(),
-            "reply_markup": json.dumps(self.render_message_buttons()),
+            "text": self.render_system_message_text(),
+            "reply_markup": json.dumps(self.render_system_message_buttons()),
         }
 
-    def render_message_text(self):
+    def render_system_message_text(self):
         result = ""
 
+        result += self.render_game_text()
+        result += "\n"
         result += self.render_facilitator_text()
         result += "\n"
         result += self.render_topic_text()
@@ -70,8 +82,14 @@ class GameSession:
 
         return result
 
+    def render_game_text(self):
+        if self.game is None:
+            return ""
+        else:
+            return "Game: {}".format(self.game.name)
+
     def render_facilitator_text(self):
-        return "Facilitator: {}".format(self.facilitator_to_string(self.facilitator))
+        return "Facilitator: {}".format(self.facilitator.to_string())
 
     def render_topic_text(self):
         result = ""
@@ -131,7 +149,7 @@ class GameSession:
 
         return result
 
-    def render_message_buttons(self):
+    def render_system_message_buttons(self):
         layout_rows = []
 
         if self.phase in self.PHASE_DISCUSSION:
@@ -171,21 +189,21 @@ class GameSession:
             "inline_keyboard": layout_rows,
         }
 
-    def render_discussion_vote_button(self, vote, text):
+    def render_discussion_vote_button(self, vote: str, text: str):
         return {
             "type": "InlineKeyboardButton",
             "text": text,
             "callback_data": "discussion-vote-click-{}-{}".format(self.facilitator_message_id, vote),
         }
 
-    def render_estimation_vote_button(self, vote):
+    def render_estimation_vote_button(self, vote: str):
         return {
             "type": "InlineKeyboardButton",
             "text": vote,
             "callback_data": "estimation-vote-click-{}-{}".format(self.facilitator_message_id, vote),
         }
 
-    def render_operation_button(self, operation, text):
+    def render_operation_button(self, operation: str, text: str):
         return {
             "type": "InlineKeyboardButton",
             "text": text,
@@ -193,10 +211,10 @@ class GameSession:
         }
 
     @staticmethod
-    def facilitator_to_string(facilitator: dict) -> str:
+    def player_to_string(player: dict) -> str:
         return "@{} ({})".format(
-            facilitator.get("username") or facilitator.get("id"),
-            facilitator["first_name"]
+            player.get("username") or player.get("id"),
+            "{} {}".format(player.get("first_name"), player.get("last_name") or "").strip()
         )
 
     @staticmethod
@@ -207,25 +225,20 @@ class GameSession:
 
     def to_dict(self):
         return {
-            "system_message_id": self.system_message_id, # TODO: Move out from json
-            "phase": self.phase, # TODO: Move out from json
-            "topic": self.topic, # TODO: Move out from json
-            "facilitator": self.facilitator,
+            "facilitator": self.facilitator.to_dict(),
             "discussion_votes": self.votes_to_json(self.discussion_votes),
             "estimation_votes": self.votes_to_json(self.estimation_votes),
         }
 
     @classmethod
-    def from_dict(cls, game_id, chat_id, facilitator_message_id, dict):
+    def from_dict(cls, game: Game, chat_id: int, facilitator_message_id: int, topic: str, facilitator: TelegramUser, dict):
         result = cls(
-            game_id,
+            game,
             chat_id,
             facilitator_message_id,
-            dict["topic"],
-            dict["facilitator"],
+            topic,
+            facilitator,
         )
-        result.system_message_id = dict["system_message_id"]
-        result.phase = dict["phase"]
 
         for user_id, discussion_vote in dict["discussion_votes"].items():
             result.discussion_votes[user_id] = DiscussionVote.from_dict(discussion_vote)
