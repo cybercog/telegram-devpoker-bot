@@ -1,4 +1,4 @@
-from app.game import Game
+from app.game_session import GameSession
 import aiosqlite
 import json
 
@@ -16,11 +16,12 @@ class GameRegistry:
     async def run_migrations(self):
         await self.db_connection.execute(
             """
-                CREATE TABLE IF NOT EXISTS game (
+                CREATE TABLE IF NOT EXISTS game_session (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    game_id INTEGER NOT NULL,
                     chat_id INTEGER NOT NULL,
-                    game_message_id INTEGER NOT NULL,
-                    topic_message_id INTEGER NOT NULL,
+                    facilitator_message_id INTEGER NOT NULL,
+                    system_message_id INTEGER NOT NULL,
                     phase TEXT NOT NULL,
                     topic TEXT NOT NULL,
                     json_data TEXT NOT NULL,
@@ -31,36 +32,37 @@ class GameRegistry:
         )
         await self.db_connection.execute(
             """
-                CREATE UNIQUE INDEX IF NOT EXISTS game_chat_id_game_message_id_idx 
-                ON game (chat_id, game_message_id);
+                CREATE UNIQUE INDEX IF NOT EXISTS game_session_chat_id_system_message_id_idx 
+                ON game_session (chat_id, system_message_id);
             """
         )
 
-    async def find_game(self, chat_id: int, topic_message_id: int) -> Game:
+    async def find_active_game_session(self, chat_id: int, facilitator_message_id: int) -> GameSession:
         query = """
             SELECT json_data
-            FROM game
+            FROM game_session
             WHERE chat_id = ?
-            AND topic_message_id = ?
-            ORDER BY game_message_id DESC
+            AND facilitator_message_id = ?
+            ORDER BY system_message_id DESC
             LIMIT 1
         """
-        async with self.db_connection.execute(query, (chat_id, topic_message_id)) as cursor:
+        async with self.db_connection.execute(query, (chat_id, facilitator_message_id)) as cursor:
             result = await cursor.fetchone()
 
             if not result:
                 return None
 
-            return Game.from_dict(chat_id, topic_message_id, json.loads(result[0]))
+            return GameSession.from_dict(0, chat_id, facilitator_message_id, json.loads(result[0]))
 
-    async def create_game(self, game: Game):
+    async def create_game_session(self, game_session: GameSession):
         await self.db_connection.execute(
             """
-                INSERT INTO game
+                INSERT INTO game_session
                 (
+                    game_id,
                     chat_id,
-                    game_message_id,
-                    topic_message_id,
+                    facilitator_message_id,
+                    system_message_id,
                     phase,
                     topic,
                     json_data,
@@ -73,36 +75,38 @@ class GameRegistry:
                     ?,
                     ?,
                     ?,
+                    ?,
                     datetime('now'),
                     datetime('now')
                 )
             """,
             (
-                game.chat_id,
-                game.game_message_id,
-                game.topic_message_id,
-                game.phase,
-                game.topic,
-                json.dumps(game.to_dict()),
+                game_session.game_id,
+                game_session.chat_id,
+                game_session.facilitator_message_id,
+                game_session.system_message_id,
+                game_session.phase,
+                game_session.topic,
+                json.dumps(game_session.to_dict()),
             )
         )
         await self.db_connection.commit()
 
-    async def update_game(self, game: Game):
+    async def update_game_session(self, game_session: GameSession):
         await self.db_connection.execute(
             """
-                UPDATE game
+                UPDATE game_session
                 SET phase = ?,
                     json_data = ?,
                     updated_at = datetime('now')
                 WHERE chat_id = ?
-                AND game_message_id = ?
+                AND system_message_id = ?
             """,
             (
-                game.phase,
-                json.dumps(game.to_dict()),
-                game.chat_id,
-                game.game_message_id,
+                game_session.phase,
+                json.dumps(game_session.to_dict()),
+                game_session.chat_id,
+                game_session.system_message_id,
             )
         )
         await self.db_connection.commit()

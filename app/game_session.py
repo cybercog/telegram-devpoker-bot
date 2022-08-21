@@ -4,7 +4,7 @@ import collections
 import json
 
 
-class Game:
+class GameSession:
     PHASE_DISCUSSION = "discussion"
     PHASE_ESTIMATION = "estimation"
     PHASE_RESOLUTION = "resolution"
@@ -21,12 +21,13 @@ class Game:
         ["✂️", "♾️", "❓", "☕"],
     ]
 
-    def __init__(self, chat_id, topic_message_id, initiator, topic):
+    def __init__(self, game_id, chat_id, topic_message_id, facilitator, topic):
+        self.game_id = game_id
         self.chat_id = chat_id
-        self.topic_message_id = topic_message_id
-        self.game_message_id = 0
+        self.facilitator_message_id = topic_message_id
+        self.system_message_id = 0
         self.phase = self.PHASE_DISCUSSION
-        self.initiator = initiator
+        self.facilitator = facilitator
         self.topic = topic
         self.estimation_votes = collections.defaultdict(EstimationVote)
         self.discussion_votes = collections.defaultdict(DiscussionVote)
@@ -45,11 +46,11 @@ class Game:
         self.estimation_votes.clear()
         self.phase = self.PHASE_ESTIMATION
 
-    def add_discussion_vote(self, initiator, vote):
-        self.discussion_votes[self.initiator_to_string(initiator)].set(vote)
+    def add_discussion_vote(self, facilitator, vote):
+        self.discussion_votes[self.facilitator_to_string(facilitator)].set(vote)
 
-    def add_estimation_vote(self, initiator, vote):
-        self.estimation_votes[self.initiator_to_string(initiator)].set(vote)
+    def add_estimation_vote(self, facilitator, vote):
+        self.estimation_votes[self.facilitator_to_string(facilitator)].set(vote)
 
     def render_message(self):
         return {
@@ -60,7 +61,7 @@ class Game:
     def render_message_text(self):
         result = ""
 
-        result += self.render_initiator_text()
+        result += self.render_facilitator_text()
         result += "\n"
         result += self.render_topic_text()
         result += "\n"
@@ -69,8 +70,8 @@ class Game:
 
         return result
 
-    def render_initiator_text(self):
-        return "Initiator: {}".format(self.initiator_to_string(self.initiator))
+    def render_facilitator_text(self):
+        return "Facilitator: {}".format(self.facilitator_to_string(self.facilitator))
 
     def render_topic_text(self):
         result = ""
@@ -174,28 +175,28 @@ class Game:
         return {
             "type": "InlineKeyboardButton",
             "text": text,
-            "callback_data": "discussion-vote-click-{}-{}".format(self.topic_message_id, vote),
+            "callback_data": "discussion-vote-click-{}-{}".format(self.facilitator_message_id, vote),
         }
 
     def render_estimation_vote_button(self, vote):
         return {
             "type": "InlineKeyboardButton",
             "text": vote,
-            "callback_data": "estimation-vote-click-{}-{}".format(self.topic_message_id, vote),
+            "callback_data": "estimation-vote-click-{}-{}".format(self.facilitator_message_id, vote),
         }
 
     def render_operation_button(self, operation, text):
         return {
             "type": "InlineKeyboardButton",
             "text": text,
-            "callback_data": "{}-click-{}".format(operation, self.topic_message_id),
+            "callback_data": "{}-click-{}".format(operation, self.facilitator_message_id),
         }
 
     @staticmethod
-    def initiator_to_string(initiator: dict) -> str:
+    def facilitator_to_string(facilitator: dict) -> str:
         return "@{} ({})".format(
-            initiator.get("username") or initiator.get("id"),
-            initiator["first_name"]
+            facilitator.get("username") or facilitator.get("id"),
+            facilitator["first_name"]
         )
 
     @staticmethod
@@ -206,18 +207,18 @@ class Game:
 
     def to_dict(self):
         return {
-            "game_message_id": self.game_message_id,
+            "system_message_id": self.system_message_id,
             "phase": self.phase,
-            "initiator": self.initiator,
+            "facilitator": self.facilitator,
             "topic": self.topic,
             "discussion_votes": self.votes_to_json(self.discussion_votes),
             "estimation_votes": self.votes_to_json(self.estimation_votes),
         }
 
     @classmethod
-    def from_dict(cls, chat_id, topic_message_id, dict):
-        result = cls(chat_id, topic_message_id, dict["initiator"], dict["topic"])
-        result.game_message_id = dict["game_message_id"]
+    def from_dict(cls, game_id, chat_id, topic_message_id, dict):
+        result = cls(game_id, chat_id, topic_message_id, dict["facilitator"], dict["topic"])
+        result.system_message_id = dict["system_message_id"]
         result.phase = dict["phase"]
 
         for user_id, discussion_vote in dict["discussion_votes"].items():
