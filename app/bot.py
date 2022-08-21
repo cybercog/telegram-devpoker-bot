@@ -59,25 +59,27 @@ async def on_help_command(chat: Chat, match):
 @bot.command("(?s)/poker\s+(.+)$")
 @bot.command("/(poker)$")
 async def on_poker_command(chat: Chat, match):
-    topic_message_id = str(chat.message["message_id"])
+    chat_id = chat.id
+    facilitator_message_id = str(chat.message["message_id"])
     topic = match.group(1)
+    facilitator = chat.sender
 
     if topic == "poker":
         topic = "(no topic)"
 
     game_id = 0
 
-    game_session = GameSession(game_id, chat.id, topic_message_id, chat.sender, topic)
+    game_session = GameSession(game_id, chat_id, facilitator_message_id, topic, facilitator)
     await create_game_session(chat, game_session)
 
 
 @bot.callback(r"discussion-vote-click-(.*?)-(.*?)$")
 async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, match):
     logbook.info("{}", callback_query)
-    topic_message_id = int(match.group(1))
+    facilitator_message_id = int(match.group(1))
     vote = match.group(2)
     result = "Vote `{}` accepted".format(vote)
-    game_session = await game_registry.find_active_game_session(chat.id, topic_message_id)
+    game_session = await game_registry.find_active_game_session(chat.id, facilitator_message_id)
 
     if not game_session:
         return await callback_query.answer(text="No such game session")
@@ -96,10 +98,11 @@ async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, ma
 @bot.callback(r"estimation-vote-click-(.*?)-(.*?)$")
 async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, match):
     logbook.info("{}", callback_query)
-    topic_message_id = int(match.group(1))
+    chat_id = chat.id
+    facilitator_message_id = int(match.group(1))
     vote = match.group(2)
     result = "Vote `{}` accepted".format(vote)
-    game_session = await game_registry.find_active_game_session(chat.id, topic_message_id)
+    game_session = await game_registry.find_active_game_session(chat_id, facilitator_message_id)
 
     if not game_session:
         return await callback_query.answer(text="No such game session")
@@ -118,8 +121,9 @@ async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, ma
 @bot.callback(r"({})-click-(.*?)$".format("|".join(FACILITATOR_OPERATIONS)))
 async def on_facilitator_operation_click(chat: Chat, callback_query: CallbackQuery, match):
     operation = match.group(1)
-    topic_message_id = int(match.group(2))
-    game_session = await game_registry.find_active_game_session(chat.id, topic_message_id)
+    chat_id = chat.id
+    facilitator_message_id = int(match.group(2))
+    game_session = await game_registry.find_active_game_session(chat_id, facilitator_message_id)
 
     if not game_session:
         return await callback_query.answer(text="No such game session")

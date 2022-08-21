@@ -21,14 +21,14 @@ class GameSession:
         ["✂️", "♾️", "❓", "☕"],
     ]
 
-    def __init__(self, game_id, chat_id, topic_message_id, facilitator, topic):
+    def __init__(self, game_id, chat_id, facilitator_message_id, topic, facilitator):
         self.game_id = game_id
         self.chat_id = chat_id
-        self.facilitator_message_id = topic_message_id
+        self.facilitator_message_id = facilitator_message_id
         self.system_message_id = 0
         self.phase = self.PHASE_DISCUSSION
-        self.facilitator = facilitator
         self.topic = topic
+        self.facilitator = facilitator
         self.estimation_votes = collections.defaultdict(EstimationVote)
         self.discussion_votes = collections.defaultdict(DiscussionVote)
 
@@ -207,17 +207,23 @@ class GameSession:
 
     def to_dict(self):
         return {
-            "system_message_id": self.system_message_id,
-            "phase": self.phase,
+            "system_message_id": self.system_message_id, # TODO: Move out from json
+            "phase": self.phase, # TODO: Move out from json
+            "topic": self.topic, # TODO: Move out from json
             "facilitator": self.facilitator,
-            "topic": self.topic,
             "discussion_votes": self.votes_to_json(self.discussion_votes),
             "estimation_votes": self.votes_to_json(self.estimation_votes),
         }
 
     @classmethod
-    def from_dict(cls, game_id, chat_id, topic_message_id, dict):
-        result = cls(game_id, chat_id, topic_message_id, dict["facilitator"], dict["topic"])
+    def from_dict(cls, game_id, chat_id, facilitator_message_id, dict):
+        result = cls(
+            game_id,
+            chat_id,
+            facilitator_message_id,
+            dict["topic"],
+            dict["facilitator"],
+        )
         result.system_message_id = dict["system_message_id"]
         result.phase = dict["phase"]
 
