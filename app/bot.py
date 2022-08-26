@@ -226,7 +226,8 @@ async def create_game(chat: Chat, game_prototype: Game):
 
 
 async def end_game(chat: Chat, game: Game):
-    await game_registry.end_game(game)
+    game.end()
+    await game_registry.update_game(game)
     game_statistics = await game_registry.get_game_statistics(game)
     await chat.send_text(**game.render_results_system_message(game_statistics))
 

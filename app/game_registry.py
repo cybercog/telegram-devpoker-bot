@@ -96,7 +96,7 @@ class GameRegistry:
         )
         await self.db_connection.commit()
 
-    async def end_game(self, game: Game):
+    async def update_game(self, game: Game):
         await self.db_connection.execute(
             """
                 UPDATE game
@@ -105,12 +105,10 @@ class GameRegistry:
             """,
             {
                 "game_id": game.id,
-                "game_status": game.STATUS_ENDED,
+                "game_status": game.status,
             }
         )
         await self.db_connection.commit()
-
-        game.status = Game.STATUS_ENDED
 
     async def find_active_game(self, chat_id: int, facilitator: TelegramUser) -> Game:
         query = """

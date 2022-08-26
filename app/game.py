@@ -14,6 +14,9 @@ class Game:
         self.name = name
         self.facilitator = facilitator
 
+    def end(self):
+        self.status = self.STATUS_ENDED
+
     def render_system_message(self):
         return {
             "text": self.render_system_message_text(),
@@ -50,19 +53,18 @@ class Game:
 
     def render_name_text(self) -> str:
         if self.status == self.STATUS_STARTED:
-            return "Planning poker started: " + self.name
+            return "Game started: " + self.name
         elif self.status == self.STATUS_ENDED:
-            return "Planning poker ended: " + self.name
+            return "Game ended: " + self.name
         else:
             return ""
 
     def render_statistics_text(self, game_statistics) -> str:
         result = ""
 
-        result += "Estimated topics count: {}".format(game_statistics["estimated_game_sessions_count"])
+        result += "Estimated topics: {}".format(game_statistics["estimated_game_sessions_count"])
 
         return result
-
 
     def to_dict(self):
         return {
