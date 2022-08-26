@@ -281,7 +281,6 @@ class GameRegistry:
     async def get_game_statistics(self, game: Game):
         query = """
             SELECT
-                COUNT(*) AS game_sessions_count,
                 COUNT(DISTINCT facilitator_message_id) AS estimated_game_sessions_count
             FROM game_session
             WHERE game_id = :game_id
@@ -298,6 +297,5 @@ class GameRegistry:
                 return None
 
             return {
-                "game_sessions_count": row["game_sessions_count"],
                 "estimated_game_sessions_count": row["estimated_game_sessions_count"],
             }

@@ -60,8 +60,6 @@ class Game:
         result = ""
 
         result += "Estimated topics count: {}".format(game_statistics["estimated_game_sessions_count"])
-        result += "\n"
-        result += "Estimations count: {}".format(game_statistics["game_sessions_count"])
 
         return result
 
