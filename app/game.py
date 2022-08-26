@@ -17,6 +17,9 @@ class Game:
     def end(self):
         self.status = self.STATUS_ENDED
 
+    def is_active(self) -> bool:
+        return self.status == self.STATUS_STARTED
+
     def render_system_message(self):
         return {
             "text": self.render_system_message_text(),

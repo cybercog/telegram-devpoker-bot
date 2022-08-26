@@ -127,6 +127,9 @@ async def on_discussion_vote_click(chat: Chat, callback_query: CallbackQuery, ma
     if game_session.phase not in GameSession.PHASE_DISCUSSION:
         return await callback_query.answer(text="Can't vote not in " + GameSession.PHASE_DISCUSSION + " phase")
 
+    if not game_session.game.is_active():
+        return await callback_query.answer(text="Game already ended")
+
     game_session.add_discussion_vote(callback_query.src["from"], vote)
     await game_registry.update_game_session(game_session)
 
@@ -150,6 +153,9 @@ async def on_estimation_vote_click(chat: Chat, callback_query: CallbackQuery, ma
     if game_session.phase not in GameSession.PHASE_ESTIMATION:
         return await callback_query.answer(text="Can't vote not in " + GameSession.PHASE_ESTIMATION + " phase")
 
+    if not game_session.game.is_active():
+        return await callback_query.answer(text="Game already ended")
+
     game_session.add_estimation_vote(callback_query.src["from"], vote)
     await game_registry.update_game_session(game_session)
 
@@ -170,6 +176,9 @@ async def on_facilitator_operation_click(chat: Chat, callback_query: CallbackQue
 
     if callback_query.src["from"]["id"] != game_session.facilitator.id:
         return await callback_query.answer(text="Operation `{}` is available only for facilitator".format(operation))
+
+    if not game_session.game.is_active():
+        return await callback_query.answer(text="Game already ended")
 
     if operation in GameSession.OPERATION_START_ESTIMATION:
         await run_operation_start_estimation(chat, game_session)
