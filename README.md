@@ -39,8 +39,8 @@ Discussion phase votes:
 * 👍 — Ready to estimate
 * ⁉️ — I have a questions or something to add
 * ✂️ — Task must be broken down
+* ☠️️ — Cancel task (already done or not actual)
 * ♾️ — Impossible to estimate or task cannot be completed
-* ☠️️ — Task should be canceled (already done or not actual)
 * ☕️ — I need a break
 
 ### Estimation phase
