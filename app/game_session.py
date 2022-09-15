@@ -17,10 +17,9 @@ class GameSession:
     OPERATION_RE_ESTIMATE = "re_estimate"
 
     CARD_DECK_LAYOUT = [
-        ["0", "0.5", "1", "2", "3", "4"],
-        ["5", "6", "7", "8", "9", "10"],
-        ["12", "18", "24", "30"],
-        ["✂️", "♾️", "❓", "☕"],
+        ["0.5", "1", "2", "3", "4", "5"],
+        ["6", "7", "8", "9", "10", "12"],
+        ["18", "24", "30", "36", "❓"],
     ]
 
     def __init__(self, game: Game, chat_id: int, facilitator_message_id: int, topic: str, facilitator: TelegramUser):
@@ -155,8 +154,38 @@ class GameSession:
         if self.phase in self.PHASE_DISCUSSION:
             layout_rows.append(
                 [
-                    self.render_discussion_vote_button(DiscussionVote.VOTE_TO_ESTIMATE, "👍 To estimate"),
-                    self.render_discussion_vote_button(DiscussionVote.VOTE_NEED_DISCUSS, "⁉️ Discuss"),
+                    self.render_discussion_vote_button(
+                        DiscussionVote.VOTE_TO_ESTIMATE,
+                        "👍 To estimate",
+                    ),
+                    self.render_discussion_vote_button(
+                        DiscussionVote.VOTE_NEED_DISCUSS,
+                        "⁉️ Discuss",
+                    ),
+                ]
+            )
+            layout_rows.append(
+                [
+                    self.render_discussion_vote_button(
+                        DiscussionVote.VOTE_SPLIT_TASK,
+                        "✂️ Split",
+                    ),
+                    self.render_discussion_vote_button(
+                        DiscussionVote.VOTE_CANCEL_TASK,
+                        "☠️️ Cancel",
+                    ),
+                ]
+            )
+            layout_rows.append(
+                [
+                    self.render_discussion_vote_button(
+                        DiscussionVote.VOTE_ESTIMATION_IMPOSSIBLE,
+                        "♾️ Impossible",
+                    ),
+                    self.render_discussion_vote_button(
+                        DiscussionVote.VOTE_TAKE_A_BREAK,
+                        "☕️ Take a break",
+                    ),
                 ]
             )
             layout_rows.append(

@@ -31,20 +31,29 @@ Example with multiline description:
 Design DevPoker bot keyboard layout
 ```
 
-Only initiator can open cards or restart game at any moment. 
+Only initiator can open cards or restart game at any moment.
+
+### Discussion phase
+
+Discussion phase votes:
+* 👍 — Ready to estimate
+* ⁉️ — I have a questions or something to add
+* ✂️ — Task must be splitted into subtasks
+* ☠️️ — Cancel task (already done or not actual)
+* ♾️ — Impossible to estimate or task cannot be completed
+* ☕️ — I need a break
+
+### Estimation phase
 
 Currently, there is only one sequence of numbers:
 ```
-0, 0.5, 1, 2, 3, 4
-5, 6, 7, 8, 9, 10
-12, 18, 24, 30
+0.5, 1, 2, 3, 4, 5
+6, 7, 8, 9, 10, 12
+18, 24, 30, 36
 ```
 
 Special cases:
-* ✂️ — Task must be broken down
-* ♾️ — Impossible to estimate or task cannot be completed
-* ❓— Unsure how to estimate
-* ☕ — I need a break
+* ❓ — Unsure how to estimate (out of context, never solved such tasks)
 
 ## Self-hosted usage
 
