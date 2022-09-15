@@ -53,7 +53,7 @@ Currently, there is only one sequence of numbers:
 ```
 
 Special cases:
-* ❓ — Unsure how to estimate
+* ❓ — Unsure how to estimate (out of context, never solved such tasks)
 
 ## Self-hosted usage
 
