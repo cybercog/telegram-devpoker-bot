@@ -47,9 +47,9 @@ Discussion phase votes:
 
 Currently, there is only one sequence of numbers:
 ```
-0, 0.5, 1, 2, 3, 4
-5, 6, 7, 8, 9, 10
-12, 18, 24, 30
+0.5, 1, 2, 3, 4, 5
+6, 7, 8, 9, 10, 12
+18, 24, 30, 36
 ```
 
 Special cases:
