@@ -19,8 +19,7 @@ class GameSession:
     CARD_DECK_LAYOUT = [
         ["0", "0.5", "1", "2", "3", "4"],
         ["5", "6", "7", "8", "9", "10"],
-        ["12", "18", "24", "30"],
-        ["✂️", "♾️", "❓", "☕"],
+        ["12", "18", "24", "30", "❓"],
     ]
 
     def __init__(self, game: Game, chat_id: int, facilitator_message_id: int, topic: str, facilitator: TelegramUser):
