@@ -1,7 +1,8 @@
 class DiscussionVote:
     VOTE_TO_ESTIMATE = "to_estimate"
     VOTE_NEED_DISCUSS = "need_discuss"
-    VOTE_BREAK_DOWN_TASK = "break_down_task"
+    VOTE_SPLIT_TASK = "split_task"
+    VOTE_CANCEL_TASK = "break_cancel_task"
     VOTE_ESTIMATION_IMPOSSIBLE = "estimation_impossible"
     VOTE_TAKE_A_BREAK = "take_a_break"
 
@@ -17,12 +18,14 @@ class DiscussionVote:
             return "👍"
         elif self.vote in self.VOTE_NEED_DISCUSS:
             return "⁉️"
-        elif self.vote in self.VOTE_BREAK_DOWN_TASK:
+        elif self.vote in self.VOTE_SPLIT_TASK:
             return "✂️"
+        elif self.vote in self.VOTE_CANCEL_TASK:
+            return "☠️️"
         elif self.vote in self.VOTE_ESTIMATION_IMPOSSIBLE:
             return "♾️"
         elif self.vote in self.VOTE_TAKE_A_BREAK:
-            return "☕"
+            return "☕️"
 
     def to_dict(self):
         return {
