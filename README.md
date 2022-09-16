@@ -38,7 +38,7 @@ Only initiator can open cards or restart game at any moment.
 Discussion phase votes:
 * 👍 — Ready to estimate
 * ⁉️ — I have a questions or something to add
-* ✂️ — Task must be splitted into subtasks
+* ✂️ — Split task into subtasks
 * ☠️️ — Cancel task (already done or not actual)
 * ♾️ — Impossible to estimate or task cannot be completed
 * ☕️ — I need a break
