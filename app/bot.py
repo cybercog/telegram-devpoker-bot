@@ -26,13 +26,18 @@ Add any description after the command to provide context\.
 Design DevPoker bot keyboard layout
 ```
 
-Currently, there is only one sequence of numbers from 0 to 30\.
+Discussion phase votes:
+\* 👍 — Ready to estimate
+\* ⁉️ — I have a questions or something to add
+\* ✂️ — Task must be splitted into subtasks
+\* ☠️️ — Cancel task (already done or not actual)
+\* ♾️ — Impossible to estimate or task cannot be completed
+\* ☕️ — I need a break
+
+Currently, there is only one sequence of numbers from 0.5 to 36\.
 
 Special cases:
-\* ✂️ — Task must be broken down
-\* ♾️ — Impossible to estimate or task cannot be completed
-\* ❓— Unsure how to estimate
-\* ☕ — I need a break
+\* ❓ — Unsure how to estimate (out of context, never solved such tasks)
 
 [Discussions on GitHub](https://github.com/cybercog/telegram-devpoker-bot/discussions)
 """
